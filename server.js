@@ -1,30 +1,78 @@
 const express = require('express');
 const path = require('path');
+const helmet = require('helmet');
+const session = require('express-session');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
-app.use(express.json());
+
+// ─── Security middleware ───────────────────────────────────────────────────────
+app.use(helmet({ contentSecurityPolicy: false })); // CSP managed separately if needed
+app.use(express.json({ limit: '64kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ─── Claude API proxy ─────────────────────────────────────────────────────────
-app.post('/api/claude', async (req, res) => {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set in Secrets' });
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify(req.body),
-    });
-    res.json(await response.json());
-  } catch (err) {
-    console.error('Claude API error:', err);
-    res.status(500).json({ error: 'Failed to reach Claude API' });
+app.use(session({
+  secret: process.env.SESSION_SECRET || (() => { throw new Error('SESSION_SECRET env var required'); })(),
+  resave: false,
+  saveUninitialized: false,
+  cookie: { httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV === 'production' },
+}));
+
+const limiter = rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true, legacyHeaders: false });
+app.use('/api/', limiter);
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+function requireAuth(req, res, next) {
+  if (req.session && req.session.authenticated) return next();
+  res.status(401).json({ error: 'Not authenticated' });
+}
+
+app.post('/api/login', (req, res) => {
+  const { email, password } = req.body;
+  const validEmail = process.env.ADMIN_EMAIL;
+  const validPassword = process.env.ADMIN_PASSWORD;
+  if (!validEmail || !validPassword) return res.status(500).json({ error: 'Auth not configured' });
+  if (email === validEmail && password === validPassword) {
+    req.session.authenticated = true;
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ success: false, error: 'Invalid credentials' });
   }
 });
+
+app.post('/api/logout', (req, res) => {
+  req.session.destroy(() => res.json({ success: true }));
+});
+
+app.get('/api/me', requireAuth, (req, res) => {
+  res.json({ authenticated: true });
+});
+
+// ─── Input validation helpers ─────────────────────────────────────────────────
+const SN_HOST_RE = /^https?:\/\/[a-zA-Z0-9-]+\.service-now\.com$/;
+const SYS_ID_RE  = /^[a-f0-9]{32}$/;
+const TABLE_RE   = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+function validateInstanceUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  const clean = url.replace(/\/$/, '');
+  return SN_HOST_RE.test(clean);
+}
+
+function validateSysId(id) {
+  return typeof id === 'string' && SYS_ID_RE.test(id);
+}
+
+function validateTableName(table) {
+  return typeof table === 'string' && TABLE_RE.test(table) && table.length <= 80;
+}
+
+// ─── Fetch with timeout ────────────────────────────────────────────────────────
+function fetchWithTimeout(url, opts, ms = 15_000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+}
 
 // ─── ServiceNow helpers ───────────────────────────────────────────────────────
 function snHeaders(username, password) {
@@ -38,7 +86,7 @@ function snHeaders(username, password) {
 
 async function snGet(instanceUrl, path, username, password) {
   const url = `${instanceUrl.replace(/\/$/, '')}${path}`;
-  const res = await fetch(url, { headers: snHeaders(username, password) });
+  const res = await fetchWithTimeout(url, { headers: snHeaders(username, password) });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`ServiceNow ${res.status}: ${text.slice(0, 300)}`);
@@ -101,21 +149,75 @@ function scoreFlow(flow, actions, recordCount) {
   };
 }
 
-function recommendPlatform(score, flowName) {
+function recommendPlatform(score, flowName, nodeBreakdown) {
   const n = (flowName || '').toLowerCase();
-  if (n.includes('hr') || n.includes('onboard') || n.includes('employee') || n.includes('offboard'))
+  // ITSM/ITOM/CSM → stay in ServiceNow
+  if (n.includes('incident') || n.includes('change') || n.includes('sla') ||
+      n.includes('alert') || n.includes('cmdb') || n.includes('config') ||
+      n.includes('knowledge') || n.includes('virtual agent') || n.includes('problem')) {
+    return 'NOW Assist';
+  }
+  // HR/Finance → Power Automate
+  if (n.includes('hr') || n.includes('onboard') || n.includes('offboard') ||
+      n.includes('employee') || n.includes('finance') || n.includes('invoice') ||
+      n.includes('vendor') || n.includes('procurement'))
+    return 'Power Automate';
+  // CRM/Customer → Salesforce
+  if (n.includes('customer') || n.includes('case') || n.includes('crm') ||
+      n.includes('salesforce'))
     return 'Salesforce Agentforce';
-  if (n.includes('customer') || n.includes('case') || n.includes('csm'))
-    return 'Salesforce Agentforce';
-  if (score < 4) return 'ServiceNow (Optimise)';
-  return 'Power Automate + Copilot';
+  // Complex technical → Temporal
+  if ((nodeBreakdown && nodeBreakdown.scriptBlocks > 5) || score < 4)
+    return 'Temporal.io';
+  return score >= 6 ? 'NOW Assist' : 'Power Automate';
 }
 
+// ─── Claude API proxy ─────────────────────────────────────────────────────────
+const ALLOWED_CLAUDE_MODELS = new Set([
+  'claude-opus-4-7', 'claude-sonnet-4-6', 'claude-haiku-4-5-20251001',
+  'claude-sonnet-4-20250514',
+]);
+
+app.post('/api/claude', requireAuth, async (req, res) => {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set' });
+
+  const { model, messages, max_tokens, system } = req.body;
+  if (!model || !messages || !Array.isArray(messages))
+    return res.status(400).json({ error: 'model and messages required' });
+  if (!ALLOWED_CLAUDE_MODELS.has(model))
+    return res.status(400).json({ error: 'Model not allowed' });
+  if (typeof max_tokens !== 'undefined' && (typeof max_tokens !== 'number' || max_tokens > 8192))
+    return res.status(400).json({ error: 'max_tokens must be a number <= 8192' });
+
+  const body = { model, messages, max_tokens: max_tokens || 1024 };
+  if (system) body.system = system;
+
+  try {
+    const response = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify(body),
+    }, 30_000);
+    if (!response.ok) return res.status(response.status).json(await response.json());
+    res.json(await response.json());
+  } catch (err) {
+    console.error('Claude API error:', err.message);
+    res.status(500).json({ error: 'Failed to reach Claude API' });
+  }
+});
+
 // ─── Test connection ──────────────────────────────────────────────────────────
-app.post('/api/servicenow/test', async (req, res) => {
+app.post('/api/servicenow/test', requireAuth, async (req, res) => {
   const { instanceUrl, username, password } = req.body;
   if (!instanceUrl || !username || !password)
     return res.status(400).json({ error: 'instanceUrl, username and password required' });
+  if (!validateInstanceUrl(instanceUrl))
+    return res.status(400).json({ error: 'instanceUrl must be a *.service-now.com URL' });
   try {
     const data = await snGet(instanceUrl,
       '/api/now/table/sys_user?sysparm_limit=1&sysparm_fields=user_name,sys_id',
@@ -127,57 +229,69 @@ app.post('/api/servicenow/test', async (req, res) => {
 });
 
 // ─── Full workflow scan ───────────────────────────────────────────────────────
-app.post('/api/servicenow/scan', async (req, res) => {
+app.post('/api/servicenow/scan', requireAuth, async (req, res) => {
   const { instanceUrl, username, password } = req.body;
   if (!instanceUrl || !username || !password)
     return res.status(400).json({ error: 'instanceUrl, username and password required' });
+  if (!validateInstanceUrl(instanceUrl))
+    return res.status(400).json({ error: 'instanceUrl must be a *.service-now.com URL' });
 
   try {
     console.log(`[FlowIQ] Starting scan of ${instanceUrl}`);
 
-    // 1. Flows
-    const flowsData = await snGet(instanceUrl,
-      '/api/now/table/sys_hub_flow?sysparm_limit=50&sysparm_fields=name,sys_id,active,description,trigger_type,run_as,category,table_name&sysparm_query=active=true',
-      username, password);
+    const [flowsData, brData] = await Promise.all([
+      snGet(instanceUrl,
+        '/api/now/table/sys_hub_flow?sysparm_limit=50&sysparm_fields=name,sys_id,active,description,trigger_type,run_as,category,table_name&sysparm_query=active=true',
+        username, password),
+      snGet(instanceUrl,
+        '/api/now/table/sys_script?sysparm_limit=50&sysparm_fields=name,sys_id,table_name,when,active,advanced&sysparm_query=active=true',
+        username, password),
+    ]);
+
     const flows = flowsData.result || [];
-    console.log(`[FlowIQ] ${flows.length} active flows found`);
-
-    // 2. Business Rules
-    const brData = await snGet(instanceUrl,
-      '/api/now/table/sys_script?sysparm_limit=50&sysparm_fields=name,sys_id,table_name,when,active,advanced&sysparm_query=active=true',
-      username, password);
     const businessRules = brData.result || [];
-    console.log(`[FlowIQ] ${businessRules.length} active business rules found`);
+    console.log(`[FlowIQ] ${flows.length} flows, ${businessRules.length} business rules`);
 
-    // 3. Score each flow
     const flowsToScan = flows.slice(0, 25);
     const opportunities = [];
     let totalNodes = 0;
     const nodeTypeCounts = { approvalGates: 0, decisionNodes: 0, scriptBlocks: 0, integrationCalls: 0, notifications: 0 };
 
-    for (const flow of flowsToScan) {
-      try {
+    // Process in batches of 5 to limit concurrency
+    const CONCURRENCY = 5;
+    for (let i = 0; i < flowsToScan.length; i += CONCURRENCY) {
+      const batch = flowsToScan.slice(i, i + CONCURRENCY);
+      const results = await Promise.allSettled(batch.map(async (flow) => {
         const actData = await snGet(instanceUrl,
           `/api/now/table/sys_hub_action_instance?sysparm_limit=30&sysparm_fields=name,action_type,sys_id,order&sysparm_query=flow=${flow.sys_id}`,
           username, password);
         const actions = actData.result || [];
-        totalNodes += actions.length;
 
         let recordCount = 0;
         const tableName = flow.table_name?.value || flow.table_name;
-        if (tableName && typeof tableName === 'string' && tableName.length > 2) {
+        if (tableName && validateTableName(tableName)) {
           try {
             const statsData = await snGet(instanceUrl, `/api/now/stats/${tableName}?sysparm_count=true`, username, password);
             recordCount = parseInt(statsData.result?.stats?.count || '0');
-          } catch (e) { /* ignore */ }
+          } catch (e) { /* table may not support stats */ }
         }
 
         const scoring = scoreFlow(flow, actions, recordCount);
-        nodeTypeCounts.approvalGates   += scoring.nodeBreakdown.approvalGates;
-        nodeTypeCounts.decisionNodes   += scoring.nodeBreakdown.decisionNodes;
-        nodeTypeCounts.scriptBlocks    += scoring.nodeBreakdown.scriptBlocks;
+        return { flow, actions, scoring, recordCount, tableName };
+      }));
+
+      for (const result of results) {
+        if (result.status === 'rejected') {
+          console.warn(`[FlowIQ] Skipped a flow: ${result.reason?.message}`);
+          continue;
+        }
+        const { flow, actions, scoring, recordCount, tableName } = result.value;
+        totalNodes += actions.length;
+        nodeTypeCounts.approvalGates    += scoring.nodeBreakdown.approvalGates;
+        nodeTypeCounts.decisionNodes    += scoring.nodeBreakdown.decisionNodes;
+        nodeTypeCounts.scriptBlocks     += scoring.nodeBreakdown.scriptBlocks;
         nodeTypeCounts.integrationCalls += scoring.nodeBreakdown.integrationCalls;
-        nodeTypeCounts.notifications   += scoring.nodeBreakdown.notifications;
+        nodeTypeCounts.notifications    += scoring.nodeBreakdown.notifications;
 
         opportunities.push({
           sys_id: flow.sys_id,
@@ -189,14 +303,12 @@ app.post('/api/servicenow/scan', async (req, res) => {
           score: scoring.score,
           tier: scoring.tier,
           tierLabel: scoring.tierLabel,
-          platform: recommendPlatform(scoring.score, flow.name),
+          platform: recommendPlatform(scoring.score, flow.name, scoring.nodeBreakdown),
           dimensions: scoring.dimensions,
           nodeBreakdown: scoring.nodeBreakdown,
           potential: Math.round(scoring.score * 10),
           recordCount,
         });
-      } catch (e) {
-        console.warn(`[FlowIQ] Skipped flow ${flow.name}: ${e.message}`);
       }
     }
 
@@ -241,78 +353,27 @@ app.post('/api/servicenow/scan', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`FlowIQ running at http://0.0.0.0:${PORT}`);
-});
-
-
-// ─── NOW Assist fit scoring ────────────────────────────────────────────────
-// Determines if a workflow is better transformed inside ServiceNow vs migrating out
-function nowAssistFit(flow, actions, nodeBreakdown) {
-  const name = (flow.name || '').toLowerCase();
-  const table = (flow.table_name?.value || flow.table_name || '').toLowerCase();
-  const category = (flow.category || '').toLowerCase();
-  let score = 0;
-  // Domain signals — ITSM/ITOM/CSM strongly prefer NOW Assist
-  if (table.startsWith('incident') || name.includes('incident')) score += 3;
-  if (table.startsWith('change') || name.includes('change')) score += 3;
-  if (table.startsWith('problem') || name.includes('problem')) score += 2;
-  if (table.startsWith('sn_si') || name.includes('sla') || name.includes('sla')) score += 2;
-  if (table.startsWith('em_') || name.includes('alert') || name.includes('event')) score += 2;
-  if (name.includes('cmdb') || name.includes('config') || name.includes('asset')) score += 2;
-  if (name.includes('knowledge') || name.includes('search')) score += 1;
-  if (name.includes('virtual agent') || name.includes('chatbot')) score += 2;
-  // HR/Finance/CRM signals — prefer migrating out
-  if (name.includes('hr') || name.includes('onboard') || name.includes('offboard')) score -= 2;
-  if (name.includes('finance') || name.includes('invoice') || name.includes('vendor')) score -= 1;
-  if (name.includes('customer') || name.includes('crm') || name.includes('case')) score -= 1;
-  // High integration call count → more complex to keep in SN
-  if (nodeBreakdown.integrationCalls > 4) score -= 1;
-  // Many approval gates → NOW Assist Predictive Intelligence is perfect
-  if (nodeBreakdown.approvalGates >= 3) score += 1;
-  return score >= 2; // true = recommend NOW Assist
-}
-
-// Override recommendPlatform to use NOW Assist logic
-const _origRecommend = recommendPlatform;
-function recommendPlatformV3(score, flowName, nodeBreakdown, tableStats) {
-  const n = (flowName || '').toLowerCase();
-  // NOW Assist candidates first
-  if (n.includes('incident') || n.includes('change') || n.includes('sla') ||
-      n.includes('alert') || n.includes('cmdb') || n.includes('config') ||
-      n.includes('knowledge') || n.includes('virtual agent') || n.includes('problem')) {
-    return 'NOW Assist';
-  }
-  // HR/Finance → Power Automate
-  if (n.includes('hr') || n.includes('onboard') || n.includes('offboard') ||
-      n.includes('employee') || n.includes('finance') || n.includes('invoice') ||
-      n.includes('vendor') || n.includes('procurement'))
-    return 'Power Automate';
-  // CRM/Customer → Salesforce
-  if (n.includes('customer') || n.includes('case') || n.includes('crm') ||
-      n.includes('salesforce'))
-    return 'Salesforce Agentforce';
-  // Complex technical → Temporal
-  if ((nodeBreakdown && nodeBreakdown.scriptBlocks > 5) || score < 4)
-    return 'Temporal.io';
-  // Default: if score is good, NOW Assist; otherwise consider Power Automate
-  return score >= 6 ? 'NOW Assist' : 'Power Automate';
-}
-
 // ─── FlowSpark: Deep analysis endpoint ────────────────────────────────────────
-app.post('/api/flowspark/analyze', async (req, res) => {
+app.post('/api/flowspark/analyze', requireAuth, async (req, res) => {
   const { instanceUrl, username, password, target } = req.body;
-  // target: { type: 'flow'|'catalog'|'process', sys_id, name, table }
 
   if (!instanceUrl || !username || !password || !target)
     return res.status(400).json({ error: 'instanceUrl, credentials and target required' });
+  if (!validateInstanceUrl(instanceUrl))
+    return res.status(400).json({ error: 'instanceUrl must be a *.service-now.com URL' });
+
+  const VALID_TARGET_TYPES = new Set(['flow', 'catalog', 'process']);
+  if (!VALID_TARGET_TYPES.has(target.type))
+    return res.status(400).json({ error: 'target.type must be flow, catalog, or process' });
+  if (target.sys_id && !validateSysId(target.sys_id))
+    return res.status(400).json({ error: 'Invalid target.sys_id format' });
+  if (target.table && !validateTableName(target.table))
+    return res.status(400).json({ error: 'Invalid target.table name' });
 
   try {
     const result = { target, nodes: [], businessRules: [], integrations: [], dataStats: {}, catalogs: [] };
 
     if (target.type === 'flow' || target.type === 'process') {
-      // Get all action nodes
       const actData = await snGet(instanceUrl,
         `/api/now/table/sys_hub_action_instance?sysparm_limit=50&sysparm_fields=name,action_type,sys_id,order,condition&sysparm_query=flow=${target.sys_id}`,
         username, password);
@@ -322,45 +383,54 @@ app.post('/api/flowspark/analyze', async (req, res) => {
       }));
     }
 
-    // Business rules for the table
+    const parallelTasks = [];
+
     if (target.table) {
-      const brData = await snGet(instanceUrl,
-        `/api/now/table/sys_script?sysparm_limit=20&sysparm_fields=name,sys_id,table_name,when,advanced,script&sysparm_query=active=true^table_name=${target.table}`,
-        username, password);
-      result.businessRules = (brData.result || []).map(br => ({
-        name: br.name, when: br.when, advanced: br.advanced,
-        complexity: br.script ? Math.min(15, (br.script.match(/if\s*\(/g) || []).length * 1.5 + 2) : 3
-      }));
+      parallelTasks.push(
+        snGet(instanceUrl,
+          `/api/now/table/sys_script?sysparm_limit=20&sysparm_fields=name,sys_id,table_name,when,advanced,script&sysparm_query=active=true^table_name=${target.table}`,
+          username, password)
+          .then(brData => {
+            result.businessRules = (brData.result || []).map(br => ({
+              name: br.name, when: br.when, advanced: br.advanced,
+              complexity: br.script ? Math.min(15, (br.script.match(/if\s*\(/g) || []).length * 1.5 + 2) : 3
+            }));
+          })
+          .catch(() => {}),
+
+        snGet(instanceUrl, `/api/now/stats/${target.table}?sysparm_count=true`, username, password)
+          .then(statsData => {
+            result.dataStats.recordCount = parseInt(statsData.result?.stats?.count || '0');
+          })
+          .catch(() => { result.dataStats.recordCount = 0; })
+      );
     }
 
-    // Integration/REST messages used
-    try {
-      const restData = await snGet(instanceUrl,
+    parallelTasks.push(
+      snGet(instanceUrl,
         `/api/now/table/sys_rest_message?sysparm_limit=10&sysparm_fields=name,rest_endpoint&sysparm_query=active=true`,
-        username, password);
-      result.integrations = (restData.result || []).map(r => ({ name: r.name, endpoint: r.rest_endpoint }));
-    } catch(e) {}
+        username, password)
+        .then(restData => {
+          result.integrations = (restData.result || []).map(r => ({ name: r.name, endpoint: r.rest_endpoint }));
+        })
+        .catch(() => {})
+    );
 
-    // Record count for data availability
-    if (target.table) {
-      try {
-        const statsData = await snGet(instanceUrl, `/api/now/stats/${target.table}?sysparm_count=true`, username, password);
-        result.dataStats.recordCount = parseInt(statsData.result?.stats?.count || '0');
-      } catch(e) { result.dataStats.recordCount = 0; }
-    }
-
-    // Service Catalog items if catalog type
     if (target.type === 'catalog') {
-      const catData = await snGet(instanceUrl,
-        `/api/now/table/sc_cat_item?sysparm_limit=20&sysparm_fields=name,sys_id,category,description,active&sysparm_query=active=true`,
-        username, password);
-      result.catalogs = catData.result || [];
+      parallelTasks.push(
+        snGet(instanceUrl,
+          `/api/now/table/sc_cat_item?sysparm_limit=20&sysparm_fields=name,sys_id,category,description,active&sysparm_query=active=true`,
+          username, password)
+          .then(catData => { result.catalogs = catData.result || []; })
+          .catch(() => {})
+      );
     }
 
-    // Score the flow
+    await Promise.all(parallelTasks);
+
     const scoring = scoreFlow({ name: target.name, table_name: target.table }, result.nodes, result.dataStats.recordCount || 0);
     result.scoring = scoring;
-    result.platform = recommendPlatformV3(scoring.score, target.name, scoring.nodeBreakdown, result.dataStats);
+    result.platform = recommendPlatform(scoring.score, target.name, scoring.nodeBreakdown);
 
     res.json({ success: true, ...result });
   } catch (err) {
@@ -370,50 +440,68 @@ app.post('/api/flowspark/analyze', async (req, res) => {
 });
 
 // ─── FlowSpark: Browse all scannable items ────────────────────────────────────
-app.post('/api/flowspark/browse', async (req, res) => {
+app.post('/api/flowspark/browse', requireAuth, async (req, res) => {
   const { instanceUrl, username, password, type } = req.body;
   if (!instanceUrl || !username || !password)
     return res.status(400).json({ error: 'Credentials required' });
+  if (!validateInstanceUrl(instanceUrl))
+    return res.status(400).json({ error: 'instanceUrl must be a *.service-now.com URL' });
 
   try {
-    let items = [];
+    const fetches = [];
+
     if (!type || type === 'flows') {
-      const d = await snGet(instanceUrl,
-        '/api/now/table/sys_hub_flow?sysparm_limit=50&sysparm_fields=name,sys_id,active,description,trigger_type,table_name,category&sysparm_query=active=true',
-        username, password);
-      items = items.concat((d.result || []).map(f => ({
-        sys_id: f.sys_id, name: f.name, type: 'flow',
-        table: f.table_name?.value || f.table_name || '',
-        category: f.category || 'General',
-        description: f.description || '',
-        trigger: f.trigger_type || ''
-      })));
+      fetches.push(
+        snGet(instanceUrl,
+          '/api/now/table/sys_hub_flow?sysparm_limit=50&sysparm_fields=name,sys_id,active,description,trigger_type,table_name,category&sysparm_query=active=true',
+          username, password)
+          .then(d => (d.result || []).map(f => ({
+            sys_id: f.sys_id, name: f.name, type: 'flow',
+            table: f.table_name?.value || f.table_name || '',
+            category: f.category || 'General',
+            description: f.description || '',
+            trigger: f.trigger_type || ''
+          })))
+          .catch(() => [])
+      );
     }
+
     if (!type || type === 'catalog') {
-      try {
-        const d = await snGet(instanceUrl,
+      fetches.push(
+        snGet(instanceUrl,
           '/api/now/table/sc_cat_item?sysparm_limit=30&sysparm_fields=name,sys_id,category,description,active&sysparm_query=active=true',
-          username, password);
-        items = items.concat((d.result || []).map(c => ({
-          sys_id: c.sys_id, name: c.name, type: 'catalog',
-          category: 'Service Catalog', description: c.description || '', table: 'sc_request'
-        })));
-      } catch(e) {}
+          username, password)
+          .then(d => (d.result || []).map(c => ({
+            sys_id: c.sys_id, name: c.name, type: 'catalog',
+            category: 'Service Catalog', description: c.description || '', table: 'sc_request'
+          })))
+          .catch(() => [])
+      );
     }
+
     if (!type || type === 'process') {
-      try {
-        const d = await snGet(instanceUrl,
+      fetches.push(
+        snGet(instanceUrl,
           '/api/now/table/wf_workflow?sysparm_limit=20&sysparm_fields=name,sys_id,description,table,active&sysparm_query=active=true',
-          username, password);
-        items = items.concat((d.result || []).map(w => ({
-          sys_id: w.sys_id, name: w.name, type: 'process',
-          table: w.table?.value || w.table || '', category: 'Workflow',
-          description: w.description || ''
-        })));
-      } catch(e) {}
+          username, password)
+          .then(d => (d.result || []).map(w => ({
+            sys_id: w.sys_id, name: w.name, type: 'process',
+            table: w.table?.value || w.table || '', category: 'Workflow',
+            description: w.description || ''
+          })))
+          .catch(() => [])
+      );
     }
+
+    const arrays = await Promise.all(fetches);
+    const items = arrays.flat();
     res.json({ success: true, items });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`FlowIQ running at http://0.0.0.0:${PORT}`);
 });

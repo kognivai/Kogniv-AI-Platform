@@ -776,15 +776,14 @@ body{padding:0!important;background:var(--content-bg)!important;overflow:hidden}
     <div class="login-sub">ServiceNow AI Transformation Intelligence</div>
     <div class="login-field">
       <label class="login-label">Email</label>
-      <input class="login-input" id="l-email" type="email" placeholder="praveen@kogniv.com" value="praveen@kogniv.com"/>
+      <input class="login-input" id="l-email" type="email" placeholder="you@example.com"/>
     </div>
     <div class="login-field">
       <label class="login-label">Password</label>
-      <input class="login-input" id="l-pass" type="password" placeholder="••••••••" value="kogniv2026"/>
+      <input class="login-input" id="l-pass" type="password" placeholder="••••••••"/>
     </div>
-    <div id="login-err" class="login-err">Invalid credentials. Use the demo account below.</div>
+    <div id="login-err" class="login-err">Invalid credentials.</div>
     <button class="login-btn" onclick="doLogin()">Sign in →</button>
-    <div class="login-demo-hint">Demo: <b>praveen@kogniv.com</b> / <b>kogniv2026</b></div>
   </div>
 </div>
 
@@ -1365,7 +1364,7 @@ body{padding:0!important;background:var(--content-bg)!important;overflow:hidden}
       </div>
       <div>
         <label style="font-size:11px;color:var(--muted);font-family:var(--mono);display:block;margin-bottom:4px">PASSWORD</label>
-        <input type="password" id="sn-pass" value="lz+HjKL44sX%" style="width:100%;font-family:var(--mono);font-size:12px;padding:7px 10px;border:.5px solid var(--bdr);border-radius:var(--rs);background:var(--surf);color:var(--ink);outline:none">
+        <input type="password" id="sn-pass" placeholder="••••••••" style="width:100%;font-family:var(--mono);font-size:12px;padding:7px 10px;border:.5px solid var(--bdr);border-radius:var(--rs);background:var(--surf);color:var(--ink);outline:none">
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -1845,7 +1844,7 @@ body{padding:0!important;background:var(--content-bg)!important;overflow:hidden}
     </div>
     <div class="fs-conn-field">
       <span class="fs-conn-label">Password</span>
-      <input class="fs-conn-input" id="fs-pass" type="password" placeholder="••••••••" value="lz+HjKL44sX%">
+      <input class="fs-conn-input" id="fs-pass" type="password" placeholder="••••••••">
     </div>
     <button onclick="fsConnect()" id="fs-conn-btn" style="height:36px;font-size:12px;font-family:var(--mono);white-space:nowrap">Connect →</button>
     <div id="fs-conn-status" class="fs-conn-status" style="display:none"></div>
@@ -2157,20 +2156,29 @@ const PAGE_NAMES = {
   transform:'Kogniv Transform', chat:'AI Consultant'
 };
 
-function doLogin(){
+async function doLogin(){
   const email = document.getElementById('l-email').value.trim();
-  const pass  = document.getElementById('l-pass').value.trim();
-  if(email === 'praveen@kogniv.com' && pass === 'kogniv2026'){
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app-shell').style.display='block';
-  } else {
-    document.getElementById('login-err').style.display='block';
+  const pass  = document.getElementById('l-pass').value;
+  const errEl = document.getElementById('login-err');
+  errEl.style.display = 'none';
+  try {
+    const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email, password:pass}) });
+    const d = await r.json();
+    if(d.success){
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('app-shell').style.display='block';
+    } else {
+      errEl.style.display='block';
+    }
+  } catch(e) {
+    errEl.style.display='block';
   }
 }
 document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('l-email').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
-function doLogout(){
+async function doLogout(){
+  await fetch('/api/logout', { method:'POST' }).catch(()=>{});
   document.getElementById('app-shell').style.display='none';
   document.getElementById('login-screen').style.display='flex';
   closeDropdowns();
@@ -2298,21 +2306,6 @@ function md(t) {
     .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
 }
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-
-// ─── Tabs ─────────────────────────────────────────────────────────────
-function sw(name,el){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  if(el)el.classList.add('active');
-  if(name==='dashboard')initDist();
-  if(name==='opportunities'){renderOpps('all');initScore();}
-  if(name==='migration'){renderPlats();initTco();}
-  if(name==='simulator'){initSimulator();}
-  if(name==='workbench'){initWorkbench();}
-  if(name==='flowspark'){initFlowSpark();}
-  if(name==='transform'){initTransform();}
-}
 
 // ─── Heatmap — clickable with detail drawer ────────────────────────────
 const DOMAIN_DATA = {
@@ -2816,7 +2809,7 @@ Provide a 150–200 word scan intelligence summary covering:
 Consider all three transformation paths: NOW Assist, migrate out, hybrid. Use markdown bold for headers.`}]});
     out.classList.remove('streaming');out.innerHTML=md(aiText);
     sdot(6,'done');stxt(6,'Platform recommendations ready');
-    document.querySelector('.hero-meta').innerHTML=`${new URL(snCreds().instanceUrl).hostname}<br>${s.scannedFlows} flows scanned · just now`;
+    document.querySelector('.hero-meta').innerHTML=`${esc(new URL(snCreds().instanceUrl).hostname)}<br>${s.scannedFlows} flows scanned · just now`;
   }catch(e){
     errEl.style.display='block';errEl.textContent='Scan error: '+e.message;
     for(let i=1;i<=6;i++){const d=document.getElementById('dot-s'+i);if(d&&d.className.includes('run'))sdot(i,'wait');}
@@ -3859,9 +3852,9 @@ function fsRenderList(){
     const ic=typeIcons[item.type]||'⟳';
     const cc=catC[item.category]||'#94a3b8';
     const sel=FS.selected&&FS.selected.sys_id===item.sys_id;
-    return `<div class="fs-item ${sel?'sel':''}" onclick="fsSelectItem('${item.sys_id}')">
-      <div class="fs-item-name">${item.name}<span class="fs-item-badge" style="background:${cc}22;color:${cc};border:.5px solid ${cc}44">${ic} ${item.type}</span></div>
-      <div class="fs-item-meta">${item.category}${item.table?'  ·  '+item.table:''}</div>
+    return `<div class="fs-item ${sel?'sel':''}" onclick="fsSelectItem('${esc(item.sys_id)}')">
+      <div class="fs-item-name">${esc(item.name)}<span class="fs-item-badge" style="background:${cc}22;color:${cc};border:.5px solid ${cc}44">${ic} ${esc(item.type)}</span></div>
+      <div class="fs-item-meta">${esc(item.category)}${item.table?'  ·  '+esc(item.table):''}</div>
     </div>`;
   }).join('');
 }
@@ -3957,7 +3950,7 @@ function fsR0(){
   document.getElementById('fs-arch-section').innerHTML=`<div class="fs-arch">${arch.map(a=>`<div class="fs-arch-box"><div class="fs-arch-ico">${a.ico}</div><div class="fs-arch-nm">${a.nm}</div><div class="fs-arch-sub">${a.sub}</div></div>`).join('')}</div>`;
   if(brs.length){
     document.getElementById('fs-br-lbl').style.display='block';
-    document.getElementById('fs-br-section').innerHTML=`<div class="card" style="padding:.75rem;margin-bottom:1rem">${brs.map(br=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:.5px solid var(--bdr);font-size:12px"><div><strong>${br.name}</strong> <span style="font-size:10px;font-family:var(--mono);color:var(--muted)">${br.when||''}</span></div><div style="font-family:var(--mono);font-size:10px;color:${(br.complexity||0)>=8?'#d97706':'#6b7280'}">complexity ${br.complexity||'—'}</div></div>`).join('')}</div>`;
+    document.getElementById('fs-br-section').innerHTML=`<div class="card" style="padding:.75rem;margin-bottom:1rem">${brs.map(br=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:.5px solid var(--bdr);font-size:12px"><div><strong>${esc(br.name)}</strong> <span style="font-size:10px;font-family:var(--mono);color:var(--muted)">${esc(br.when||'')}</span></div><div style="font-family:var(--mono);font-size:10px;color:${(br.complexity||0)>=8?'#d97706':'#6b7280'}">complexity ${br.complexity||'—'}</div></div>`).join('')}</div>`;
   }
   const gapNd=nodes.filter(n=>n.gap);
   const grp={};gapNd.forEach(n=>{const k=(n.ai||'AI').replace('\n',' ');grp[k]=(grp[k]||[]);grp[k].push(n.n.replace('\n',' '));});
