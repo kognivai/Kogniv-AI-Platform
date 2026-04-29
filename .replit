@@ -1,0 +1,8 @@
+run = "npm install && npm start"
+
+[nix]
+channel = "stable-23_11"
+
+[deployment]
+run = ["sh", "-c", "npm install && npm start"]
+deploymentTarget = "cloudrun"
