@@ -2453,6 +2453,21 @@ body{padding:0!important;background:var(--content-bg)!important;overflow:hidden}
         </div>
       </div>
       <div class="card" style="margin-bottom:1.25rem">
+        <div class="lbl">ServiceNow connection</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem">
+          <div>
+            <label style="font-size:11px;color:var(--muted);font-family:var(--mono);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Instance URL</label>
+            <input type="text" id="obs-sn-url" placeholder="https://dev.service-now.com" style="width:100%;font-family:var(--mono);font-size:12px;padding:7px 10px;border:.5px solid var(--bdr);border-radius:6px;background:var(--tint);color:var(--ink)" oninput="obsSyncCreds()"/>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--muted);font-family:var(--mono);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Username</label>
+            <input type="text" id="obs-sn-user" placeholder="admin" style="width:100%;font-family:var(--mono);font-size:12px;padding:7px 10px;border:.5px solid var(--bdr);border-radius:6px;background:var(--tint);color:var(--ink)" oninput="obsSyncCreds()"/>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--muted);font-family:var(--mono);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Password</label>
+            <input type="password" id="obs-sn-pass" placeholder="password" style="width:100%;font-family:var(--mono);font-size:12px;padding:7px 10px;border:.5px solid var(--bdr);border-radius:6px;background:var(--tint);color:var(--ink)" oninput="obsSyncCreds()"/>
+          </div>
+        </div>
         <div class="lbl">Select process to observe</div>
         <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:flex-end">
           <div>
@@ -5928,12 +5943,18 @@ async function obsStart() {
 
   loadMsg('⟳ Connecting to ServiceNow...');
 
-  const creds = snCreds();
+  // Use Observe's own credential fields (with fallback to Scan tab fields)
+  const obsCreds = {
+    instanceUrl: (document.getElementById('obs-sn-url')?.value || '').trim() || (document.getElementById('sn-url')?.value || '').trim(),
+    username:    (document.getElementById('obs-sn-user')?.value || '').trim() || (document.getElementById('sn-user')?.value || '').trim(),
+    password:    document.getElementById('obs-sn-pass')?.value || document.getElementById('sn-pass')?.value || '',
+  };
+  const creds = obsCreds;
   const table = OBS_TABLE_MAP[key] || 'incident';
 
   if (creds.instanceUrl && creds.username && creds.password) {
     try {
-      loadMsg('⟳ Extracting event log from sys_audit...');
+      loadMsg('⟳ Connecting to ' + creds.instanceUrl + '...');
       const r = await fetch('/api/observe/connect', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
@@ -5985,8 +6006,15 @@ async function obsStart() {
         obsFeedTimer = setInterval(obsPollLive, 8000);
       }
     } catch(e) {
-      console.warn('[Observe] Live connect failed, using demo data:', e.message);
+      console.warn('[Observe] Live connect failed:', e.message);
+      const statusEl = document.getElementById('obs-conn-status');
+      if (statusEl) statusEl.innerHTML = '<span style="color:#ef4444">●</span> Connection failed: ' + e.message + ' — showing demo data. Deploy to Replit for live mining.';
+      loadMsg('⚠ Server not reachable — showing demo data. Deploy to Replit to enable live process mining.');
     }
+  } else {
+    const statusEl = document.getElementById('obs-conn-status');
+    if (statusEl) statusEl.innerHTML = '<span style="color:#f59e0b">●</span> No credentials entered — showing demo data. Fill in the ServiceNow fields above.';
+    loadMsg('⚠ No credentials — fill in ServiceNow URL, Username and Password above to connect live.');
   }
 
   obsRenderKPIs();
@@ -6399,15 +6427,35 @@ function obsRenderMiningMeta() {
     <div>Source: <span style="color:#22c55e">● live</span></div>`;
 }
 
+function obsSyncCreds() {
+  // Sync Observe credential fields back to Scan tab fields for consistency
+  const url  = document.getElementById('obs-sn-url')?.value?.trim();
+  const user = document.getElementById('obs-sn-user')?.value?.trim();
+  const pass = document.getElementById('obs-sn-pass')?.value;
+  if (url  && document.getElementById('sn-url'))  document.getElementById('sn-url').value  = url;
+  if (user && document.getElementById('sn-user')) document.getElementById('sn-user').value = user;
+  if (pass && document.getElementById('sn-pass')) document.getElementById('sn-pass').value = pass;
+}
+
 function initObserve() {
   document.getElementById('obs-start-btn').disabled = true;
-  // Check if SN creds are available and show status
   setTimeout(() => {
-    const creds = snCreds();
+    // Pre-populate Observe credential fields from Scan tab values (which have hardcoded defaults)
+    const urlEl  = document.getElementById('sn-url');
+    const userEl = document.getElementById('sn-user');
+    const passEl = document.getElementById('sn-pass');
+    const obsUrl  = document.getElementById('obs-sn-url');
+    const obsUser = document.getElementById('obs-sn-user');
+    const obsPass = document.getElementById('obs-sn-pass');
+    if (obsUrl  && urlEl?.value)  obsUrl.value  = urlEl.value;
+    if (obsUser && userEl?.value) obsUser.value = userEl.value;
+    if (obsPass && passEl?.value) obsPass.value = passEl.value;
+
     const statusEl = document.getElementById('obs-conn-status');
     if (!statusEl) return;
-    if (creds.instanceUrl && creds.username) {
-      statusEl.innerHTML = '<span style="color:#22c55e">●</span> Using live ServiceNow: ' + creds.instanceUrl + ' — select a process to begin mining';
+    const instanceUrl = urlEl?.value?.trim();
+    if (instanceUrl) {
+      statusEl.innerHTML = '<span style="color:#22c55e">●</span> Credentials loaded from Scan tab — <strong>' + instanceUrl + '</strong> — select a process and click Observe';
     } else {
       statusEl.innerHTML = '<span style="color:#f59e0b">●</span> No ServiceNow credentials found — go to Workflow Scan tab to connect, or Observe will use demo data';
     }
