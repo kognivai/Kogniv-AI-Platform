@@ -1061,19 +1061,164 @@ const PROCESS_GENAI_CATALOGUE = {
     },
   ],
   problem: [
+
+    // ── Detection & Logging ───────────────────────────────────────────────
+    {
+      cap: 'Proactive Problem Identification',
+      platform: 'NOW Assist', effort: 'Medium', saving: 16000, trigger: 'high_volume',
+      why: 'Most problems are raised reactively after many incidents have already occurred. AI can detect recurring patterns and raise problems before the next wave of incidents.',
+      detail: 'ML model continuously monitors the incident stream for recurring symptoms across the same CI class, category, or assignment group. When a pattern exceeds a configurable threshold (e.g., 3+ incidents with similar description in 24h), NOW Assist auto-creates or suggests a problem record — stopping reactive fire-fighting before it starts. Typically surfaces problems 12-48h earlier than manual detection.',
+      nowAssistFeature: 'Predictive Intelligence',
+    },
+    {
+      cap: 'Duplicate Problem Detection',
+      platform: 'NOW Assist', effort: 'Low', saving: 5000, trigger: 'always',
+      why: 'Duplicate problem records fragment investigation effort — two teams solving the same root cause independently, doubling work and missing combined signal from all related incidents.',
+      detail: 'AI semantic similarity check against open problems at creation time. Flags probable duplicates with confidence score and lists all shared linked incidents. Engineer confirms merge or keeps separate. Reduces duplicate problem volume by 25-35% and consolidates incident evidence for faster RCA.',
+      nowAssistFeature: 'AI Search & Dedup',
+    },
+    {
+      cap: 'Auto-Population from Linked Incidents',
+      platform: 'NOW Assist', effort: 'Low', saving: 6000, trigger: 'always',
+      why: 'Problem records are manually populated, often incompletely. Engineers re-read 10-20 incident records to build the problem description — taking hours before investigation even starts.',
+      detail: 'GenAI Summarise reads all linked incident records and auto-generates the problem short description, affected CI list, symptom summary, and initial impact assessment. Engineer reviews and confirms in under 2 minutes. Problem record is investigation-ready immediately on creation.',
+      nowAssistFeature: 'GenAI Summarise',
+    },
+    {
+      cap: 'Problem Categorisation & Assignment',
+      platform: 'NOW Assist', effort: 'Low', saving: 4000, trigger: 'always',
+      why: 'Manual categorisation and assignment of problems is inconsistent and slow — wrong assignment adds days of delay before the right team even begins investigation.',
+      detail: 'Predictive Intelligence classifies the problem into the correct category and assigns to the right team based on CI class, symptom keywords, and historical routing patterns. Same model that works for incidents — applied at problem creation to eliminate the routing delay.',
+      nowAssistFeature: 'Predictive Intelligence',
+    },
+
+    // ── Investigation & Diagnosis ─────────────────────────────────────────
     {
       cap: 'Root Cause Analysis Assist',
-      platform: 'NOW Assist', effort: 'Medium', saving: 12000, trigger: 'always',
-      why: 'Manual RCA takes 3.4 days on average. NOW Assist AI correlates related incidents, CI changes, and events to surface probable root causes.',
-      detail: 'AI-assisted RCA analyses incident corpus + CMDB relationships + recent changes to identify probable root cause in <4h for 60% of problems. Human reviews and confirms.',
+      platform: 'NOW Assist', effort: 'Medium', saving: 14000, trigger: 'always',
+      why: 'Manual RCA takes 3.4 days on average, blocking workaround publication and allowing related incidents to keep accumulating. AI-assisted RCA cuts this to under 4 hours for 60% of problems.',
+      detail: 'AI correlates the full incident corpus, recent changes on affected CIs, event alerts from ITOM, and CMDB relationship graph to surface probable root causes ranked by likelihood. Engineer reviews the AI evidence chain — not a blank page. Handles 60% of standard infrastructure problems autonomously; escalates complex application problems with a supporting evidence package.',
       nowAssistFeature: 'AI RCA Assist',
     },
     {
-      cap: 'Known Error Article Auto-Draft',
+      cap: '5-Why Analysis Generation',
+      platform: 'NOW Assist', effort: 'Low', saving: 5000, trigger: 'always',
+      why: 'The 5-Why technique is required for major problems but is time-consuming to construct rigorously. Most 5-Why analyses stop at the symptom layer rather than reaching the systemic cause.',
+      detail: 'GenAI generates a structured 5-Why analysis from the problem timeline, incident data, and RCA findings. Each "why" is grounded in evidence from the CMDB, incident records, or change history — not guesswork. Produces a defensible, auditable analysis chain that meets CAB and compliance review standards.',
+      nowAssistFeature: 'GenAI Analysis',
+    },
+    {
+      cap: 'Problem Timeline Reconstruction',
+      platform: 'NOW Assist', effort: 'Low', saving: 5000, trigger: 'always',
+      why: 'Investigators manually correlate timestamps across incident records, change records, alerts, and monitoring data to build a problem timeline — taking 2-4 hours before investigation begins.',
+      detail: 'AI ingests all linked incidents, changes on affected CIs, event alerts, and audit records to auto-construct a chronological event timeline. Highlights the first occurrence, the onset of degradation, changes made in the window, and alert sequence. Delivers a timeline in minutes that would take hours manually.',
+      nowAssistFeature: 'GenAI Timeline',
+    },
+    {
+      cap: 'Change Correlation',
+      platform: 'NOW Assist', effort: 'Low', saving: 6000, trigger: 'always',
+      why: 'Changes are the leading cause of problems, but the link between a specific change and a problem onset is rarely made automatically — investigators miss it or find it too late.',
+      detail: 'AI surfaces all changes made to affected CIs and their dependencies within a configurable lookback window (default 7 days). Ranks changes by correlation score based on timing, CI proximity, and change type. Flags probable change-caused problems immediately — enabling faster rollback decisions.',
+      nowAssistFeature: 'Change Correlation AI',
+    },
+    {
+      cap: 'Fishbone / Ishikawa Diagram Generation',
       platform: 'NOW Assist', effort: 'Low', saving: 4000, trigger: 'always',
-      why: 'Known Error database entries are rarely created because documentation is manual. GenAI drafts KEDB articles from problem records.',
-      detail: 'Once root cause is identified, NOW Assist drafts the KEDB article including symptoms, root cause, and workaround — publishing to the knowledge base in one click.',
+      why: 'Fishbone diagrams are used in major problem reviews and audits, but are created manually and inconsistently — often after the fact when evidence is cold.',
+      detail: 'GenAI generates a structured Ishikawa (cause-and-effect) diagram from the problem record, RCA findings, and linked evidence. Populates the standard 6M categories (Methods, Machines, Materials, Measurement, Man, Mother Nature) with AI-identified contributing factors. Exports as a structured text or image for inclusion in the PIR.',
+      nowAssistFeature: 'GenAI Diagram',
+    },
+
+    // ── Workaround & Resolution ───────────────────────────────────────────
+    {
+      cap: 'Workaround Generation',
+      platform: 'NOW Assist', effort: 'Low', saving: 8000, trigger: 'always',
+      why: 'Workaround publication is delayed because engineers write them from scratch. Every hour without a published workaround means the service desk handles related incidents without guidance.',
+      detail: 'GenAI drafts a workaround from similar past problem resolutions, KB articles, and vendor documentation. Includes: applicability conditions, step-by-step instructions, known limitations, and verification steps. Reduces workaround authoring from 60-90 min to under 10 min. Published to the service desk immediately on problem creation.',
+      nowAssistFeature: 'GenAI Workaround',
+    },
+    {
+      cap: 'Resolution Plan Creation',
+      platform: 'NOW Assist', effort: 'Low', saving: 7000, trigger: 'always',
+      why: 'Permanent fix plans are ad-hoc and inconsistent. Without a structured plan, fixes are implemented unsafely or tested inadequately — leading to failed changes and recurrence.',
+      detail: 'GenAI generates a structured resolution plan: root cause confirmation steps, fix implementation steps (CIs to change, configuration to update), testing approach, rollback procedure, and success criteria. Feeds directly into a linked change request — eliminating the handoff gap between problem resolution and change execution.',
+      nowAssistFeature: 'GenAI Resolution Plan',
+    },
+    {
+      cap: 'Known Error Article Auto-Draft',
+      platform: 'NOW Assist', effort: 'Low', saving: 5000, trigger: 'always',
+      why: 'KEDB entries are rarely created because documentation is entirely manual. Without a known error record, the service desk handles recurring incidents as new each time.',
+      detail: 'NOW Assist drafts the KEDB article when a workaround is identified: symptoms, affected CIs, root cause summary, workaround steps, and open permanent fix status. One-click publish to the knowledge base. Service desk agents see the KEDB entry automatically when logging incidents with matching symptoms — deflecting repeat contacts.',
       nowAssistFeature: 'Knowledge Creation',
+    },
+    {
+      cap: 'Permanent Fix vs Workaround Classification',
+      platform: 'NOW Assist', effort: 'Low', saving: 3000, trigger: 'always',
+      why: 'Teams invest in permanent fixes for problems that would be cheaper to manage as known errors, and accept workarounds for problems that should be fixed permanently. AI brings data to this decision.',
+      detail: 'AI analyses the incident recurrence rate, business impact per recurrence, estimated fix complexity, and CMDB lifecycle status of affected CIs to recommend: pursue permanent fix (with estimated ROI), accept as known error, or defer. Provides the supporting data for the problem manager to make an informed decision.',
+      nowAssistFeature: 'AI Decision Assist',
+    },
+
+    // ── Major Problem & Major Incident ────────────────────────────────────
+    {
+      cap: 'Major Incident RCA Report',
+      platform: 'NOW Assist', effort: 'Low', saving: 10000, trigger: 'high_volume',
+      why: 'Major incident RCA reports take 2-3 days to author manually and often lack the rigour required by management, auditors, and customers. Late or incomplete reports extend the reputational damage.',
+      detail: 'GenAI generates a full management-ready RCA document: executive summary, service impact and timeline, contributing factors, root cause, immediate actions taken, permanent fix plan, and prevention measures. Draws from linked incidents, change records, monitoring alerts, and problem notes. Reduces authoring from 2 days to 2 hours with human review and narrative correction.',
+      nowAssistFeature: 'GenAI RCA Report',
+    },
+    {
+      cap: 'Repeat Problem Detection',
+      platform: 'NOW Assist', effort: 'Low', saving: 6000, trigger: 'always',
+      why: 'Problems that were previously "resolved" recur because the root fix was incomplete or a contributing factor was missed. Without AI detection, teams restart investigation from scratch.',
+      detail: 'AI semantic matching against closed problems at creation time. Flags probable recurrences with: "This problem matches a previously resolved record from [date]. The original root cause was [X] and fix was [Y]." Engineer can fast-track investigation using the prior evidence chain rather than starting over. Cuts investigation time for repeat problems by 60-70%.',
+      nowAssistFeature: 'Repeat Pattern AI',
+    },
+    {
+      cap: 'SLA Impact Assessment',
+      platform: 'NOW Assist', effort: 'Low', saving: 4000, trigger: 'always',
+      why: 'The total SLA breach impact of a problem — across all linked incidents — is never calculated automatically, making it impossible to prioritise problem resolution by business impact.',
+      detail: 'AI aggregates SLA breach data across all incidents linked to the problem: total breached SLAs, affected customers, breach duration, and financial penalty exposure (if configured). Produces an impact summary used to prioritise permanent fix investment and communicate urgency to the business.',
+      nowAssistFeature: 'SLA Impact AI',
+    },
+
+    // ── Knowledge & Prevention ────────────────────────────────────────────
+    {
+      cap: 'Knowledge Article Creation from Resolution',
+      platform: 'NOW Assist', effort: 'Low', saving: 5000, trigger: 'always',
+      why: 'Resolved problems are a goldmine of knowledge that is almost never captured. The same issue recurs months later and the team has to solve it again from scratch.',
+      detail: 'When a problem is resolved, NOW Assist automatically drafts a knowledge article: problem symptoms, root cause, resolution steps, affected CIs, and prevention measures. Published to the knowledge base and linked to the problem record. Visible to the service desk for related incident deflection and to engineers for future similar problems.',
+      nowAssistFeature: 'Knowledge Creation',
+    },
+    {
+      cap: 'Preventive Action Recommendations',
+      platform: 'NOW Assist', effort: 'Medium', saving: 8000, trigger: 'always',
+      why: 'Problem closure typically ends at fixing the immediate cause. AI can identify the systemic conditions that made the problem possible — and recommend changes to prevent the next one.',
+      detail: 'AI analyses the resolved problem and suggests concrete preventive actions: CMDB configuration changes, monitoring threshold adjustments, process guardrails, or alert rule additions. Each recommendation is ranked by estimated incident prevention value. Creates linked improvement tasks automatically for the relevant teams.',
+      nowAssistFeature: 'Preventive AI',
+    },
+    {
+      cap: 'Problem Trend Analysis',
+      platform: 'NOW Assist', effort: 'Medium', saving: 6000, trigger: 'high_volume',
+      why: 'Problem volume trends across CI classes, categories, and teams are invisible without dedicated analysis. Management cannot prioritise investment without knowing where problems concentrate.',
+      detail: 'AI generates a periodic problem trend report: top CIs by problem volume, categories with rising trend, teams with highest MTTR, repeat problem rate, and cost-of-quality estimate. Surfaces systemic quality issues that individual problem reviews miss. Feeds directly into capacity planning and architecture review decisions.',
+      nowAssistFeature: 'Trend Analysis AI',
+    },
+
+    // ── Closure & Review ──────────────────────────────────────────────────
+    {
+      cap: 'Problem Closure Review Auto-Draft',
+      platform: 'NOW Assist', effort: 'Low', saving: 3000, trigger: 'always',
+      why: 'Problem closure reviews are skipped because writing them is manual and time-consuming. Without closure review, the organisation never learns from problems.',
+      detail: 'GenAI auto-drafts the problem closure review: summary of investigation, root cause confirmed, fix implemented, incidents resolved, lessons learned, and prevention measures in place. Engineer reviews and signs off. Turns a 45-minute writing task into a 5-minute review — dramatically improving closure review compliance.',
+      nowAssistFeature: 'GenAI Closure Review',
+    },
+    {
+      cap: 'Incident Re-link Audit',
+      platform: 'NOW Assist', effort: 'Low', saving: 2000, trigger: 'always',
+      why: 'Problems are frequently closed without all related incidents properly linked — leaving orphaned incidents that reopen or generate new problems without the context of the resolved root cause.',
+      detail: 'Before closure, AI scans for incidents that share symptoms, affected CIs, or resolution notes with the problem but are not currently linked. Flags probable missing links for engineer confirmation. Ensures the knowledge base reference from the problem flows through to all affected incident tickets.',
+      nowAssistFeature: 'AI Audit',
     },
   ],
 };
