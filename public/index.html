@@ -6323,21 +6323,29 @@ function obsNodeClick(id, nm, desc, tp, isGap) {
 function obsRenderGaps() {
   const sevC = {P0:'var(--teal)',P1:'var(--lblue)',P2:'#d97706'};
   const sevBg = {P0:'var(--lteal)',P1:'var(--ice)',P2:'var(--lamb)'};
-  document.getElementById('obs-gap-count').textContent = obsProc.gaps.length + ' gaps detected';
-  document.getElementById('obs-gaps').innerHTML = obsProc.gaps.map(g => `
-    <div style="border:.5px solid var(--bdr);border-radius:8px;padding:.875rem 1rem;margin-bottom:.75rem;cursor:pointer;transition:border-color .15s"
+  const srcLabel = {bottleneck:'Bottleneck',rework_loop:'Rework',conformance:'Conformance',genai_catalogue:'GenAI feature'};
+  const srcBg = {bottleneck:'#fef2f2',rework_loop:'#fef2f2',conformance:'#fefce8',genai_catalogue:'#f5f3ff'};
+  const srcC  = {bottleneck:'#b91c1c',rework_loop:'#b91c1c',conformance:'#78350f',genai_catalogue:'#4c1d95'};
+  const count = (obsProc.gaps||[]).length;
+  const genaiCount = (obsProc.gaps||[]).filter(g => g.source === 'genai_catalogue').length;
+  const bnCount = count - genaiCount;
+  document.getElementById('obs-gap-count').textContent = count + ' gaps  ·  ' + bnCount + ' bottleneck  ·  ' + genaiCount + ' GenAI';
+    document.getElementById('obs-gaps').innerHTML = (obsProc.gaps||[]).map(g => `
+    <div style="border:.5px solid var(--bdr);border-radius:8px;padding:.875rem 1rem;margin-bottom:.75rem;transition:border-color .15s"
       onmouseover="this.style.borderColor='var(--bdr2)'" onmouseout="this.style.borderColor='var(--bdr)'">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.375rem">
-        <div style="display:flex;align-items:center;gap:7px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.375rem;flex-wrap:wrap;gap:5px">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <span style="font-family:var(--mono);font-size:10px;padding:1px 7px;border-radius:3px;background:${sevBg[g.sev]||'var(--tint)'};color:${sevC[g.sev]||'var(--muted)'}">${g.sev}</span>
-          <span style="font-size:13px;font-weight:500">${g.node}</span>
+          ${g.source ? `<span style="font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:3px;background:${srcBg[g.source]||'var(--tint)'};color:${srcC[g.source]||'var(--muted)'}">${srcLabel[g.source]||g.source}</span>` : ''}
+          <span style="font-size:13px;font-weight:500">${g.nowAssistFeature || g.node}</span>
           <span style="font-size:11px;color:var(--muted)">→ ${g.type}</span>
         </div>
-        <div style="text-align:right">
-          <div style="font-size:13px;font-weight:500;color:var(--teal)">${g.saving}</div>
-          <div style="font-size:10px;font-family:var(--mono);color:var(--muted)">${g.plat} · ${g.effort} effort</div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:13px;font-weight:500;color:var(--teal)">${g.saving || (g.estimatedMonthlySaving ? '$'+Math.round(g.estimatedMonthlySaving/1000)+'K/mo' : '')}</div>
+          <div style="font-size:10px;font-family:var(--mono);color:var(--muted)">${g.plat||g.platform||''} · ${g.effort} effort</div>
         </div>
       </div>
+      ${g.why ? `<div style="font-size:12px;color:var(--now);margin-bottom:5px;padding-left:8px;border-left:2px solid var(--now)">${g.why}</div>` : ''}
       <div style="font-size:12px;color:var(--muted);line-height:1.6">${g.detail}</div>
     </div>`).join('');
 }

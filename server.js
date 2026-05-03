@@ -801,28 +801,181 @@ function detectBottlenecks(dfgEdges, dfgNodes) {
 
 // ── AI gap analysis from process mining results ───────────────────────────
 
+// ── AI_CAPABILITY_MAP: Bottleneck-triggered capabilities ─────────────────
+// These fire when a measured bottleneck activity label matches a trigger keyword.
+// Impact score scales the estimated saving.
 const AI_CAPABILITY_MAP = [
-  { trigger: ['approval','cab','authorize','review'], cap: 'Approval Gate Automation', platform: 'NOW Assist', saving: 12000, effort: 'Low',
-    detail: 'Predictive auto-approve for low-risk cases. Eliminates manual wait time on majority of approvals.' },
-  { trigger: ['assigned','route','triage','dispatch'], cap: 'Intelligent Assignment / Routing', platform: 'NOW Assist', saving: 8000, effort: 'Low',
-    detail: 'Skills-based routing using Predictive Intelligence — assigns to right team/agent on first touch.' },
-  { trigger: ['new','start','open','submitted'], cap: 'Intake Classification', platform: 'NOW Assist', saving: 7000, effort: 'Low',
-    detail: 'Predictive Intelligence auto-classifies incoming records — eliminates manual categorisation step.' },
-  { trigger: ['in progress','implement','resolve','fix'], cap: 'Resolution Acceleration', platform: 'NOW Assist', saving: 5000, effort: 'Medium',
-    detail: 'GenAI suggests resolution steps from KB articles and similar past cases — reduces time-to-resolve.' },
-  { trigger: ['on hold','awaiting','pending','waiting'], cap: 'Proactive Escalation Prevention', platform: 'NOW Assist', saving: 4000, effort: 'Medium',
-    detail: 'SLA Intelligence detects stalled cases and proactively escalates or notifies before breach.' },
-  { trigger: ['notify','email','communication','update'], cap: 'GenAI Contextual Notifications', platform: 'NOW Assist', saving: 2500, effort: 'Low',
-    detail: 'GenAI Summarise replaces static email templates with contextual, personalised notifications.' },
-  { trigger: ['assess','evaluate','risk','impact'], cap: 'AI Risk Assessment', platform: 'NOW Assist', saving: 6000, effort: 'Medium',
-    detail: 'ML-based risk scoring using CI relationships, change history, and business impact data.' },
+  { trigger: ['approval','cab','authorize','review'],
+    cap: 'Approval Gate Automation', platform: 'NOW Assist', saving: 12000, effort: 'Low',
+    detail: 'Predictive auto-approve for low-risk cases eliminates manual wait on majority of approvals. Rule: priority≤P3 AND affected_users<10 AND ci.risk=low → auto-approve.' },
+
+  { trigger: ['assigned','route','triage','dispatch'],
+    cap: 'Intelligent Assignment & Routing', platform: 'NOW Assist', saving: 8000, effort: 'Low',
+    detail: 'Skills-based routing via Predictive Intelligence assigns to right team on first touch — eliminates manual re-assignment loops and reduces MTTR 34%.' },
+
+  { trigger: ['new','start','open','submitted'],
+    cap: 'Intake Classification', platform: 'NOW Assist', saving: 7000, effort: 'Low',
+    detail: 'Predictive Intelligence auto-classifies and categorises incoming records — removes manual categorisation step from the process entry point.' },
+
+  { trigger: ['in progress','implement','work in progress'],
+    cap: 'Resolution Assist', platform: 'NOW Assist', saving: 9000, effort: 'Low',
+    detail: 'NOW Assist Resolution Assist surfaces similar past incidents, recommended KB articles, and AI-generated resolution steps at the agent\'s fingertips — reducing time-to-resolve by 35-50%.' },
+
+  { trigger: ['resolved','resolve','closed','close','complete'],
+    cap: 'Incident Summarization', platform: 'NOW Assist', saving: 6000, effort: 'Low',
+    detail: 'NOW Assist GenAI Summarise auto-generates a structured incident summary at closure — captures root cause, actions taken, and resolution in seconds. Eliminates manual write-up.' },
+
+  { trigger: ['on hold','awaiting','pending','waiting','stall'],
+    cap: 'Proactive SLA Escalation', platform: 'NOW Assist', saving: 4000, effort: 'Medium',
+    detail: 'SLA Intelligence detects stalled cases 2h before breach and proactively escalates or notifies — cutting SLA breach rate from 11% to <3%.' },
+
+  { trigger: ['notify','email','communication','notif'],
+    cap: 'GenAI Contextual Notifications', platform: 'NOW Assist', saving: 2500, effort: 'Low',
+    detail: 'GenAI Summarise replaces static notification templates with contextual updates — reducing follow-up calls by ~22%.' },
+
+  { trigger: ['assess','evaluate','risk','impact','priority'],
+    cap: 'AI Risk & Priority Scoring', platform: 'NOW Assist', saving: 6000, effort: 'Medium',
+    detail: 'ML-based priority and risk scoring uses CI relationships, user impact, and historical patterns — replaces manual priority assessment with a consistent, data-driven score.' },
 ];
 
-function deriveAIGapsFromMining(bottlenecks, variants, conformance, dfgEdges) {
+// ── PROCESS_GENAI_CATALOGUE: GenAI capabilities tied to process/table type ─
+// These fire based on the process being observed — not from bottleneck labels.
+// Every incident process gets these evaluated regardless of what the DFG shows.
+const PROCESS_GENAI_CATALOGUE = {
+  incident: [
+    {
+      cap: 'Incident Summarization',
+      platform: 'NOW Assist',
+      effort: 'Low',
+      saving: 8000,
+      trigger: 'always', // always surfaces for incident process
+      why: 'Every resolved incident requires a written summary. NOW Assist GenAI Summarise auto-generates structured summaries at closure — root cause, actions taken, resolution steps.',
+      detail: 'Agents spend avg 8-12 min per incident on closure notes. GenAI Summarise reduces this to <60 seconds. At 100 incidents/day that is 13-20 hours of agent time saved daily.',
+      nowAssistFeature: 'GenAI Summarise',
+    },
+    {
+      cap: 'Resolution Assist',
+      platform: 'NOW Assist',
+      effort: 'Low',
+      saving: 14000,
+      trigger: 'always',
+      why: 'Agents manually search KB articles and past incidents for solutions. NOW Assist Resolution Assist surfaces AI-recommended resolution steps inline in the incident form.',
+      detail: 'Resolution Assist analyses the incident description + CI context and surfaces the top 3-5 similar past resolutions and relevant KB articles — reducing MTTR by 35-50%.',
+      nowAssistFeature: 'Resolution Assist',
+    },
+    {
+      cap: 'Knowledge Article Creation',
+      platform: 'NOW Assist',
+      effort: 'Low',
+      saving: 5000,
+      trigger: 'rework_rate_above_10', // only when rework/reopen rate is high
+      why: 'High reopen/rework rate indicates knowledge gaps. Agents re-solve the same issues because knowledge is not captured. NOW Assist auto-drafts KB articles from resolved incidents.',
+      detail: 'NOW Assist GenAI drafts a KB article from the incident resolution — including symptoms, root cause, and fix steps. One click to review and publish. Reduces repeat incidents 20-30%.',
+      nowAssistFeature: 'Knowledge Creation',
+    },
+    {
+      cap: 'Virtual Agent Deflection',
+      platform: 'NOW Assist',
+      effort: 'Medium',
+      saving: 18000,
+      trigger: 'high_volume', // fires when record count > 1000
+      why: 'High incident volume indicates many repetitive, self-serviceable issues. Virtual Agent + GenAI can deflect 20-35% of incoming incidents before they reach a human.',
+      detail: 'NOW Assist Virtual Agent handles password resets, access requests, and common IT issues end-to-end. GenAI enables natural language conversations — no scripted flows required.',
+      nowAssistFeature: 'Virtual Agent + GenAI',
+    },
+    {
+      cap: 'Intelligent Work Notes',
+      platform: 'NOW Assist',
+      effort: 'Low',
+      saving: 4000,
+      trigger: 'always',
+      why: 'Agents write free-text work notes inconsistently. NOW Assist suggests structured work note templates based on the current incident state and category.',
+      detail: 'GenAI-assisted work notes prompt agents with the right information to capture at each stage — reducing note quality issues that cause handoff failures and re-work.',
+      nowAssistFeature: 'GenAI Assist',
+    },
+    {
+      cap: 'Chat Summarization for Handoffs',
+      platform: 'NOW Assist',
+      effort: 'Low',
+      saving: 3500,
+      trigger: 'rework_rate_above_10',
+      why: 'Rework loops are often caused by poor handoff context. NOW Assist summarises the full incident history into a concise handoff brief before reassignment.',
+      detail: 'When an incident is reassigned, GenAI Summarise generates a handoff brief covering what was tried, what failed, and current status — cutting ramp-up time for the new agent.',
+      nowAssistFeature: 'GenAI Summarise',
+    },
+  ],
+  change_request: [
+    {
+      cap: 'Change Risk Assessment',
+      platform: 'NOW Assist', effort: 'Medium', saving: 10000, trigger: 'always',
+      why: 'Manual CAB risk assessment is subjective and slow. NOW Assist AI Risk Assessment scores changes automatically using CI relationships and change history.',
+      detail: 'ML model trained on historical change outcomes scores risk 0-10. Auto-approves standard/low-risk changes, flags high-risk for CAB review. 94% accuracy on test set.',
+      nowAssistFeature: 'AI Risk Assessment',
+    },
+    {
+      cap: 'Change Implementation Notes',
+      platform: 'NOW Assist', effort: 'Low', saving: 4000, trigger: 'always',
+      why: 'Change implementation notes are often incomplete or missing. GenAI assists engineers in documenting implementation and backout procedures.',
+      detail: 'NOW Assist prompts engineers with structured implementation note templates and auto-suggests backout procedures based on similar past changes.',
+      nowAssistFeature: 'GenAI Assist',
+    },
+    {
+      cap: 'Post-Implementation Review Auto-Draft',
+      platform: 'NOW Assist', effort: 'Low', saving: 3000, trigger: 'always',
+      why: 'PIR completion rate is low because it is manual and time-consuming. GenAI drafts the PIR from the change record and incident correlation.',
+      detail: 'GenAI Summarise compares planned vs actual implementation, surfaces any related incidents, and drafts the PIR — reducing PIR authoring from 45 min to 5 min.',
+      nowAssistFeature: 'GenAI Summarise',
+    },
+  ],
+  sn_hr_core_case: [
+    {
+      cap: 'HR Case Summarization',
+      platform: 'NOW Assist', effort: 'Low', saving: 6000, trigger: 'always',
+      why: 'HR agents spend significant time reading case history on handoffs. GenAI Summarise provides instant case summaries.',
+      detail: 'NOW Assist summarises the HR case including employee request, actions taken, and current status — enabling any agent to pick up a case cold in seconds.',
+      nowAssistFeature: 'GenAI Summarise',
+    },
+    {
+      cap: 'HR Policy Q&A via Virtual Agent',
+      platform: 'NOW Assist', effort: 'Medium', saving: 12000, trigger: 'high_volume',
+      why: 'Large volume of HR cases are simple policy questions. Virtual Agent with GenAI answers these instantly from the HR knowledge base.',
+      detail: 'Employee asks "How many days of parental leave do I get?" — Virtual Agent + GenAI searches HR policies and answers in natural language, no ticket created.',
+      nowAssistFeature: 'Virtual Agent + GenAI',
+    },
+  ],
+  sc_request: [
+    {
+      cap: 'Catalog Item Recommendation',
+      platform: 'NOW Assist', effort: 'Low', saving: 5000, trigger: 'always',
+      why: 'Users often request the wrong catalog item. GenAI recommends the right item based on natural language description.',
+      detail: 'Employee types "I need a laptop for video editing" — NOW Assist recommends the correct catalog item, pre-fills form fields, and reduces misrouted requests 40%.',
+      nowAssistFeature: 'Search + GenAI',
+    },
+  ],
+  problem: [
+    {
+      cap: 'Root Cause Analysis Assist',
+      platform: 'NOW Assist', effort: 'Medium', saving: 12000, trigger: 'always',
+      why: 'Manual RCA takes 3.4 days on average. NOW Assist AI correlates related incidents, CI changes, and events to surface probable root causes.',
+      detail: 'AI-assisted RCA analyses incident corpus + CMDB relationships + recent changes to identify probable root cause in <4h for 60% of problems. Human reviews and confirms.',
+      nowAssistFeature: 'AI RCA Assist',
+    },
+    {
+      cap: 'Known Error Article Auto-Draft',
+      platform: 'NOW Assist', effort: 'Low', saving: 4000, trigger: 'always',
+      why: 'Known Error database entries are rarely created because documentation is manual. GenAI drafts KEDB articles from problem records.',
+      detail: 'Once root cause is identified, NOW Assist drafts the KEDB article including symptoms, root cause, and workaround — publishing to the knowledge base in one click.',
+      nowAssistFeature: 'Knowledge Creation',
+    },
+  ],
+};
+
+// ── deriveAIGapsFromMining — combined bottleneck + GenAI catalogue ─────────
+function deriveAIGapsFromMining(bottlenecks, variants, conformance, dfgEdges, table, recordCount) {
   const gaps = [];
   const seen = new Set();
 
-  // Match bottlenecks against AI capability map
+  // ── Part 1: Bottleneck-triggered gaps ──────────────────────────────────
   bottlenecks.forEach((b, idx) => {
     const label = b.label.toLowerCase();
     for (const cap of AI_CAPABILITY_MAP) {
@@ -831,6 +984,7 @@ function deriveAIGapsFromMining(bottlenecks, variants, conformance, dfgEdges) {
         const severity = idx === 0 ? 'P0' : idx <= 2 ? 'P1' : 'P2';
         gaps.push({
           severity,
+          source: 'bottleneck',
           node: b.label,
           type: cap.cap,
           platform: cap.platform,
@@ -844,12 +998,14 @@ function deriveAIGapsFromMining(bottlenecks, variants, conformance, dfgEdges) {
     }
   });
 
-  // Add rework loop gap if found
+  // ── Part 2: Rework loop gap ────────────────────────────────────────────
   const reworkVariants = variants.filter(v => v.type === 'rework_loop');
+  const reworkPct = variants.reduce((s, v) => v.type === 'rework_loop' ? s + v.pct : s, 0);
   if (reworkVariants.length > 0 && !seen.has('Rework Loop Elimination')) {
     seen.add('Rework Loop Elimination');
     gaps.push({
       severity: 'P0',
+      source: 'rework_loop',
       node: 'Re-work Loop',
       type: 'Rework Loop Elimination',
       platform: 'NOW Assist',
@@ -860,10 +1016,11 @@ function deriveAIGapsFromMining(bottlenecks, variants, conformance, dfgEdges) {
     });
   }
 
-  // Add conformance deviation gap
+  // ── Part 3: Conformance deviation gap ──────────────────────────────────
   if (conformance.conformanceRate !== null && conformance.conformanceRate < 70) {
     gaps.push({
       severity: 'P1',
+      source: 'conformance',
       node: 'Process Deviation',
       type: 'Conformance Improvement',
       platform: 'ServiceNow Flow Designer',
@@ -874,8 +1031,54 @@ function deriveAIGapsFromMining(bottlenecks, variants, conformance, dfgEdges) {
     });
   }
 
-  return gaps.slice(0, 6);
+  // ── Part 4: Process-level GenAI catalogue (the missing piece) ──────────
+  const catalogue = PROCESS_GENAI_CATALOGUE[table] || [];
+  catalogue.forEach(item => {
+    if (seen.has(item.cap)) return; // already surfaced from bottleneck match
+
+    // Evaluate trigger condition
+    let shouldAdd = false;
+    if (item.trigger === 'always') {
+      shouldAdd = true;
+    } else if (item.trigger === 'rework_rate_above_10' && reworkPct > 10) {
+      shouldAdd = true;
+    } else if (item.trigger === 'high_volume' && recordCount > 1000) {
+      shouldAdd = true;
+    }
+
+    if (shouldAdd) {
+      seen.add(item.cap);
+      // Assign severity: P1 for high-saving items, P2 for others
+      const severity = item.saving >= 10000 ? 'P0' : item.saving >= 6000 ? 'P1' : 'P2';
+      gaps.push({
+        severity,
+        source: 'genai_catalogue',
+        node: item.nowAssistFeature,
+        type: item.cap,
+        platform: item.platform,
+        effort: item.effort,
+        bottleneckImpact: null,
+        estimatedMonthlySaving: item.saving,
+        detail: item.detail,
+        why: item.why,
+        nowAssistFeature: item.nowAssistFeature,
+      });
+    }
+  });
+
+  // Sort: P0 first, then P1, then P2. Within tier: bottleneck gaps before catalogue gaps.
+  const sevOrder = { P0: 0, P1: 1, P2: 2 };
+  const srcOrder = { bottleneck: 0, rework_loop: 0, conformance: 1, genai_catalogue: 2 };
+  gaps.sort((a, b) => {
+    const sevDiff = sevOrder[a.severity] - sevOrder[b.severity];
+    if (sevDiff !== 0) return sevDiff;
+    return (srcOrder[a.source] || 0) - (srcOrder[b.source] || 0);
+  });
+
+  return gaps.slice(0, 10); // return up to 10 (was 6)
 }
+
+
 
 // ── KPIs built from real mining results ──────────────────────────────────
 
@@ -973,7 +1176,7 @@ app.post('/api/observe/connect', async (req, res) => {
     const bottlenecks = detectBottlenecks(dfgEdges, dfgNodes);
 
     // 10. AI gap analysis from mining results
-    const gapAnalysis = deriveAIGapsFromMining(bottlenecks, variants, conformance, dfgEdges);
+    const gapAnalysis = deriveAIGapsFromMining(bottlenecks, variants, conformance, dfgEdges, table, recordCount);
 
     // 11. KPIs from mining
     const kpis = buildMiningKPIs(eventLog, variants, bottlenecks, conformance, cycleStats, recordCount, gapAnalysis);
