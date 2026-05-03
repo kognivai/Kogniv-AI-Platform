@@ -905,26 +905,134 @@ const PROCESS_GENAI_CATALOGUE = {
     },
   ],
   change_request: [
+
+    // ── GenAI Plan Creation ──────────────────────────────────────────────
+    {
+      cap: 'Implementation Plan Creation',
+      platform: 'NOW Assist', effort: 'Low', saving: 11000, trigger: 'always',
+      why: 'Engineers spend 2-3 hours manually writing implementation plans. Most plans are incomplete, inconsistent, or copied from unrelated changes.',
+      detail: 'NOW Assist GenAI generates a full step-by-step implementation plan from the change description, affected CI context, and CMDB relationships. Covers pre-checks, execution steps, verification steps, and timing estimates. Reduces authoring from 2h to 10 min.',
+      nowAssistFeature: 'GenAI Implementation Plan',
+    },
+    {
+      cap: 'Backout & Rollback Plan Creation',
+      platform: 'NOW Assist', effort: 'Low', saving: 9000, trigger: 'always',
+      why: 'Backout plans are frequently missing or inadequate. When changes fail, engineers scramble to reverse actions without a documented rollback path — causing extended outages.',
+      detail: 'GenAI automatically generates a rollback plan from the implementation steps — reversing each action in sequence, adding verification checkpoints, and flagging steps that cannot be automatically reversed. Reduces change-related MTTR by 40% when rollback is required.',
+      nowAssistFeature: 'GenAI Backout Plan',
+    },
+    {
+      cap: 'Test Plan Creation',
+      platform: 'NOW Assist', effort: 'Low', saving: 7000, trigger: 'always',
+      why: 'Test plans are often written after the fact or not at all. GenAI generates test cases from change scope and affected CI service map.',
+      detail: 'NOW Assist analyses the change scope and CMDB service relationships to generate a test plan covering pre-change baseline capture, functional test cases for affected services, and post-change validation steps. Engineers review and approve — not write from scratch.',
+      nowAssistFeature: 'GenAI Test Plan',
+    },
+    {
+      cap: 'CAB Justification & Notes Drafting',
+      platform: 'NOW Assist', effort: 'Low', saving: 5000, trigger: 'always',
+      why: 'CAB submission notes are manually written and often lack the technical and business justification reviewers need — leading to change rejections and rescheduling.',
+      detail: 'GenAI drafts the full CAB submission: business justification, technical rationale, risk assessment narrative, rollback approach, and communication plan. Engineers review and submit. Reduces CAB prep time from 45 min to 5 min and cut rejection rate.',
+      nowAssistFeature: 'GenAI CAB Notes',
+    },
+    {
+      cap: 'Change Summarization at Closure',
+      platform: 'NOW Assist', effort: 'Low', saving: 4000, trigger: 'always',
+      why: 'Change closure notes are inconsistent or missing. Future audits, incident correlation, and repeat changes all depend on accurate closure documentation.',
+      detail: 'GenAI Summarise auto-generates a structured change closure summary: what was implemented, actual vs planned outcome, any incidents raised, lessons learned. Creates a clean CMDB audit trail in seconds — not 30 minutes.',
+      nowAssistFeature: 'GenAI Summarise',
+    },
+
+    // ── CI & Conflict Intelligence ────────────────────────────────────────
+    {
+      cap: 'CI Conflict Detection',
+      platform: 'NOW Assist', effort: 'Medium', saving: 14000, trigger: 'always',
+      why: 'Multiple changes targeting the same CI in the same maintenance window is one of the leading causes of change-related outages. Currently requires manual cross-referencing of the schedule.',
+      detail: 'NOW Assist scans the change schedule and CMDB to identify conflicts: same CI targeted by two or more changes in overlapping windows. Flags potential conflicts during the Assess stage — before CAB, not after. Includes indirect conflicts via CI relationships (e.g., two changes on different CIs sharing a downstream dependency).',
+      nowAssistFeature: 'CI Conflict Detection',
+    },
+    {
+      cap: 'CMDB Impact Analysis',
+      platform: 'NOW Assist', effort: 'Medium', saving: 12000, trigger: 'always',
+      why: 'Manual CMDB traversal to identify all affected upstream and downstream CIs takes 38 minutes per change and is frequently incomplete — leading to unplanned service impacts.',
+      detail: 'AI traverses the CMDB relationship graph to automatically identify all CIs affected by the change: direct CIs, dependent services, hosted applications, and business services. Surfaces the full blast radius before the change is approved. Feeds directly into risk scoring and CAB notes.',
+      nowAssistFeature: 'CMDB Impact Analysis',
+    },
+    {
+      cap: 'Change Collision Prevention',
+      platform: 'NOW Assist', effort: 'Medium', saving: 8000, trigger: 'high_volume',
+      why: 'In high-change environments, overlapping maintenance windows create cascading failures. Collision prevention requires looking across the entire change schedule — impossible to do manually.',
+      detail: 'AI analyses the full change schedule to surface window collisions, blackout period violations, and dependency-chain conflicts. Recommends alternative maintenance windows based on historical usage patterns and existing freeze calendars.',
+      nowAssistFeature: 'Change Scheduling AI',
+    },
+    {
+      cap: 'Affected Business Service Mapping',
+      platform: 'NOW Assist', effort: 'Low', saving: 6000, trigger: 'always',
+      why: 'Change approvers and stakeholders need to understand which business services are at risk — not just which CIs are changing. This mapping is currently done manually and often missed.',
+      detail: 'NOW Assist traverses the CMDB service map to identify all business services that depend on the affected CIs. Auto-populates the "Affected Services" field and generates a stakeholder notification list — ensuring the right people are informed before the change window.',
+      nowAssistFeature: 'Service Impact Mapping',
+    },
+
+    // ── Risk & Compliance ─────────────────────────────────────────────────
     {
       cap: 'Change Risk Assessment',
       platform: 'NOW Assist', effort: 'Medium', saving: 10000, trigger: 'always',
-      why: 'Manual CAB risk assessment is subjective and slow. NOW Assist AI Risk Assessment scores changes automatically using CI relationships and change history.',
-      detail: 'ML model trained on historical change outcomes scores risk 0-10. Auto-approves standard/low-risk changes, flags high-risk for CAB review. 94% accuracy on test set.',
+      why: 'Manual CAB risk assessment is subjective, slow, and inconsistent across different reviewers. AI scoring is objective, repeatable, and based on actual historical outcomes.',
+      detail: 'ML model trained on historical change outcomes scores risk 0-10 using CI criticality, change type, affected services, time of day, and past failure rate for similar changes. 94% accuracy. Auto-approves risk ≤3, fast-tracks risk 4-6 to expedited CAB, requires full CAB for risk ≥7.',
       nowAssistFeature: 'AI Risk Assessment',
     },
     {
-      cap: 'Change Implementation Notes',
-      platform: 'NOW Assist', effort: 'Low', saving: 4000, trigger: 'always',
-      why: 'Change implementation notes are often incomplete or missing. GenAI assists engineers in documenting implementation and backout procedures.',
-      detail: 'NOW Assist prompts engineers with structured implementation note templates and auto-suggests backout procedures based on similar past changes.',
-      nowAssistFeature: 'GenAI Assist',
+      cap: 'Historical Failure Pattern Detection',
+      platform: 'NOW Assist', effort: 'Medium', saving: 8000, trigger: 'always',
+      why: 'The same type of change on the same CI class fails repeatedly, but without AI analysis these patterns are invisible to the approving team.',
+      detail: 'ML model identifies CI + change type combinations with elevated historical failure rates. Flags the change with "This type of change has failed 3× on similar CIs in the past 6 months" — prompting reviewers to require additional testing or a longer rollback window.',
+      nowAssistFeature: 'Failure Pattern AI',
     },
+    {
+      cap: 'Regulatory Compliance Check',
+      platform: 'NOW Assist', effort: 'Medium', saving: 6000, trigger: 'always',
+      why: 'Changes touching regulated CIs (payment systems, PII data stores, healthcare records) require additional documentation and approvals. These are frequently missed in manual review.',
+      detail: 'AI cross-references affected CIs against compliance classification tags (SOX, HIPAA, PCI-DSS, GDPR). Automatically adds required approval gates, compliance documentation prompts, and audit trail entries when regulated CIs are in scope.',
+      nowAssistFeature: 'Compliance Check AI',
+    },
+    {
+      cap: 'Change Freeze & Blackout Detection',
+      platform: 'NOW Assist', effort: 'Low', saving: 5000, trigger: 'always',
+      why: 'Changes scheduled during freeze windows (year-end, product launches, holidays) are a common but avoidable cause of policy violations and emergency rollbacks.',
+      detail: 'NOW Assist checks the proposed change window against the organisation change freeze calendar and flags violations at submission time — not at CAB review. Suggests the nearest available window outside the freeze period.',
+      nowAssistFeature: 'Freeze Calendar AI',
+    },
+
+    // ── CAB Intelligence ──────────────────────────────────────────────────
+    {
+      cap: 'Standard Change Auto-Classification',
+      platform: 'NOW Assist', effort: 'Low', saving: 9000, trigger: 'always',
+      why: '40-60% of changes submitted as Normal could qualify as Standard — pre-approved, low-risk, well-documented. Identifying these eliminates unnecessary CAB overhead.',
+      detail: 'AI compares new change submissions against the standard change catalogue and historical approved patterns. Automatically reclassifies qualifying changes as Standard — bypassing the CAB queue entirely. Typically saves 3-5 days per change that qualifies.',
+      nowAssistFeature: 'Standard Change AI',
+    },
+    {
+      cap: 'Emergency Change Streamlining',
+      platform: 'NOW Assist', effort: 'Low', saving: 6000, trigger: 'rework_rate_above_10',
+      why: 'Emergency changes have no structured fast-path — they follow the same process as normal changes or bypass all controls, both suboptimal. AI can create a controlled fast-path.',
+      detail: 'NOW Assist identifies emergency changes via keyword/urgency signals, automatically escalates to the ECAB approver pool, pre-drafts the emergency justification, and sets up a 2-hour approval SLA. Post-emergency, AI generates the mandatory review documentation automatically.',
+      nowAssistFeature: 'Emergency Change AI',
+    },
+
+    // ── Post-Implementation ───────────────────────────────────────────────
     {
       cap: 'Post-Implementation Review Auto-Draft',
       platform: 'NOW Assist', effort: 'Low', saving: 3000, trigger: 'always',
-      why: 'PIR completion rate is low because it is manual and time-consuming. GenAI drafts the PIR from the change record and incident correlation.',
-      detail: 'GenAI Summarise compares planned vs actual implementation, surfaces any related incidents, and drafts the PIR — reducing PIR authoring from 45 min to 5 min.',
-      nowAssistFeature: 'GenAI Summarise',
+      why: 'PIR completion rate is below 40% because authoring is manual and time-consuming. Incomplete PIRs break the feedback loop that would prevent repeat failures.',
+      detail: 'GenAI Summarise compares planned vs actual implementation, correlates incidents raised during the change window, and drafts the PIR automatically. Reduces PIR authoring from 45 min to 5 min. Prompts the engineer to confirm or correct the AI-generated narrative before closing.',
+      nowAssistFeature: 'PIR Auto-Draft',
+    },
+    {
+      cap: 'Related Incident Correlation',
+      platform: 'NOW Assist', effort: 'Low', saving: 4000, trigger: 'always',
+      why: 'Incidents caused by changes are often not linked to the change record, breaking root cause analysis and making repeat failures likely.',
+      detail: 'AI automatically correlates incidents opened within the change window against the affected CI list. Surfaces probable change-caused incidents, links them to the change record, and includes them in the PIR. Improves RCA quality and feeds back into future risk scoring.',
+      nowAssistFeature: 'Incident Correlation AI',
     },
   ],
   sn_hr_core_case: [
