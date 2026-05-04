@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="UTF-8"?><unload unload_date="2026-05-04 02:23:55">
+  <sys_remote_update_set action="INSERT_OR_UPDATE">
+    <application display_value="Global">global</application>
+    <name>Meeting Room Booking</name>
+    <origin_sys_id>00000000000000000000000000000000</origin_sys_id>
+    <release_date/>
+    <remote_sys_id>a5769ab7c5114b7c815b00590b8e0f20</remote_sys_id>
+    <state>loaded</state>
+    <summary>Custom table u_meeting_room_booking with fields and status choices for meeting room booking requests</summary>
+    <sys_class_name>sys_remote_update_set</sys_class_name>
+    <sys_id>a5769ab7c5114b7c815b00590b8e0f20</sys_id>
+    <sys_name>Meeting Room Booking</sys_name>
+  </sys_remote_update_set>
+  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_db_object_28b1b3b3e457484084d9be8c0672ab29</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_db_object"><sys_db_object action="INSERT_OR_UPDATE">
+    <create_access_controls>false</create_access_controls>
+    <create_module/>
+    <create_role/>
+    <description>Meeting room booking requests with conflict checking and manager approval</description>
+    <extendable>false</extendable>
+    <label>Meeting Room Booking</label>
+    <name>u_meeting_room_booking</name>
+    <super_class/>
+    <sys_class_name>sys_db_object</sys_class_name>
+    <sys_id>28b1b3b3e457484084d9be8c0672ab29</sys_id>
+    <sys_name>u_meeting_room_booking</sys_name>
+    <sys_scope display_value="Global">global</sys_scope>
+  </sys_db_object></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>bc5739e4c4dd4301aa7631da2955127c</sys_id>
+    <table>sys_db_object</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_number_134b7ed072a046889261f5ae9df2ed9a</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_number"><sys_number action="INSERT_OR_UPDATE">
+    <maximum_digits>7</maximum_digits>
+    <number>1</number>
+    <prefix>MRB</prefix>
+    <sys_id>134b7ed072a046889261f5ae9df2ed9a</sys_id>
+    <table>u_meeting_room_booking</table>
+  </sys_number></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>94d213a15d7a42f6bade29e2c02bb849</sys_id>
+    <table>sys_number</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_dictionary_ccfaf3ff3c2444728d0794cd48e6b762</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_dictionary"><sys_dictionary action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <array>false</array>
+    <calculation/>
+    <choice>0</choice>
+    <column_label>Room Name</column_label>
+    <default_value></default_value>
+    <element>u_room_name</element>
+    <internal_type display_value="string">string</internal_type>
+    <mandatory>true</mandatory>
+    <max_length>100</max_length>
+    <name>u_meeting_room_booking</name>
+    <reference/>
+    <read_only>false</read_only>
+    <sys_id>ccfaf3ff3c2444728d0794cd48e6b762</sys_id>
+    <sys_name>u_meeting_room_booking.u_room_name</sys_name>
+    <sys_scope display_value="Global">global</sys_scope>
+    <table_reference>false</table_reference>
+    <use_dynamic_default>false</use_dynamic_default>
+  </sys_dictionary></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>c2dfeabbac46485ebd6f1bff82a4304f</sys_id>
+    <table>sys_dictionary</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_dictionary_2788237965df4b2a8f410c26447aa9a3</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_dictionary"><sys_dictionary action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <array>false</array>
+    <calculation/>
+    <choice>0</choice>
+    <column_label>Location / Floor</column_label>
+    <default_value></default_value>
+    <element>u_location</element>
+    <internal_type display_value="string">string</internal_type>
+    <mandatory>false</mandatory>
+    <max_length>100</max_length>
+    <name>u_meeting_room_booking</name>
+    <reference/>
+    <read_only>false</read_only>
+    <sys_id>2788237965df4b2a8f410c26447aa9a3</sys_id>
+    <sys_name>u_meeting_room_booking.u_location</sys_name>
+    <sys_scope display_value="Global">global</sys_scope>
+    <table_reference>false</table_reference>
+    <use_dynamic_default>false</use_dynamic_default>
+  </sys_dictionary></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>75880aef5b4b4d6b9c8642e64d5d0c85</sys_id>
+    <table>sys_dictionary</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_dictionary_4e65f4159c094a098a076a808c236a1a</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_dictionary"><sys_dictionary action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <array>false</array>
+    <calculation/>
+    <choice>0</choice>
+    <column_label>Start Date & Time</column_label>
+    <default_value></default_value>
+    <element>u_start_datetime</element>
+    <internal_type display_value="glide_date_time">glide_date_time</internal_type>
+    <mandatory>true</mandatory>
+    <max_length/>
+    <name>u_meeting_room_booking</name>
+    <reference/>
+    <read_only>false</read_only>
+    <sys_id>4e65f4159c094a098a076a808c236a1a</sys_id>
+    <sys_name>u_meeting_room_booking.u_start_datetime</sys_name>
+    <sys_scope display_value="Global">global</sys_scope>
+    <table_reference>false</table_reference>
+    <use_dynamic_default>false</use_dynamic_default>
+  </sys_dictionary></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>cf99c792f10c47a78b156a069ae0bda2</sys_id>
+    <table>sys_dictionary</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_dictionary_be9bb31ff24a49a8a4d4d2efdbc69088</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_dictionary"><sys_dictionary action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <array>false</array>
+    <calculation/>
+    <choice>0</choice>
+    <column_label>End Date & Time</column_label>
+    <default_value></default_value>
+    <element>u_end_datetime</element>
+    <internal_type display_value="glide_date_time">glide_date_time</internal_type>
+    <mandatory>true</mandatory>
+    <max_length/>
+    <name>u_meeting_room_booking</name>
+    <reference/>
+    <read_only>false</read_only>
+    <sys_id>be9bb31ff24a49a8a4d4d2efdbc69088</sys_id>
+    <sys_name>u_meeting_room_booking.u_end_datetime</sys_name>
+    <sys_scope display_value="Global">global</sys_scope>
+    <table_reference>false</table_reference>
+    <use_dynamic_default>false</use_dynamic_default>
+  </sys_dictionary></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>e1324680898c4c77b6eb406e7b37e5ab</sys_id>
+    <table>sys_dictionary</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_dictionary_2c7703925dde48feabca7b1b7f9407bb</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_dictionary"><sys_dictionary action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <array>false</array>
+    <calculation/>
+    <choice>0</choice>
+    <column_label>Duration (minutes)</column_label>
+    <default_value></default_value>
+    <element>u_duration_minutes</element>
+    <internal_type display_value="integer">integer</internal_type>
+    <mandatory>false</mandatory>
+    <max_length/>
+    <name>u_meeting_room_booking</name>
+    <reference/>
+    <read_only>true</read_only>
+    <sys_id>2c7703925dde48feabca7b1b7f9407bb</sys_id>
+    <sys_name>u_meeting_room_booking.u_duration_minutes</sys_name>
+    <sys_scope display_value="Global">global</sys_scope>
+    <table_reference>false</table_reference>
+    <use_dynamic_default>false</use_dynamic_default>
+  </sys_dictionary></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>d807b9408d92411a91fb1cefd416342d</sys_id>
+    <table>sys_dictionary</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_dictionary_eafb9f996b7d49aab2d0fb4cb95c5389</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_dictionary"><sys_dictionary action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <array>false</array>
+    <calculation/>
+    <choice>0</choice>
+    <column_label>Number of Attendees</column_label>
+    <default_value></default_value>
+    <element>u_attendees</element>
+    <internal_type display_value="integer">integer</internal_type>
+    <mandatory>false</mandatory>
+    <max_length/>
+    <name>u_meeting_room_booking</name>
+    <reference/>
+    <read_only>false</read_only>
+    <sys_id>eafb9f996b7d49aab2d0fb4cb95c5389</sys_id>
+    <sys_name>u_meeting_room_booking.u_attendees</sys_name>
+    <sys_scope display_value="Global">global</sys_scope>
+    <table_reference>false</table_reference>
+    <use_dynamic_default>false</use_dynamic_default>
+  </sys_dictionary></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>571c2513f65e4c818b13514137910d08</sys_id>
+    <table>sys_dictionary</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_dictionary_cc28eb2a864e4fb79166b0de3d2078a0</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_dictionary"><sys_dictionary action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <array>false</array>
+    <calculation/>
+    <choice>0</choice>
+    <column_label>Meeting Purpose</column_label>
+    <default_value></default_value>
+    <element>u_purpose</element>
+    <internal_type display_value="string">string</internal_type>
+    <mandatory>true</mandatory>
+    <max_length>200</max_length>
+    <name>u_meeting_room_booking</name>
+    <reference/>
+    <read_only>false</read_only>
+    <sys_id>cc28eb2a864e4fb79166b0de3d2078a0</sys_id>
+    <sys_name>u_meeting_room_booking.u_purpose</sys_name>
+    <sys_scope display_value="Global">global</sys_scope>
+    <table_reference>false</table_reference>
+    <use_dynamic_default>false</use_dynamic_default>
+  </sys_dictionary></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>2822da3dda854c8e8331cd18c76b751e</sys_id>
+    <table>sys_dictionary</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_dictionary_ac3aff20105945cc98f029b1df5fbaa2</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_dictionary"><sys_dictionary action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <array>false</array>
+    <calculation/>
+    <choice>0</choice>
+    <column_label>Equipment Needed</column_label>
+    <default_value></default_value>
+    <element>u_equipment_needed</element>
+    <internal_type display_value="string">string</internal_type>
+    <mandatory>false</mandatory>
+    <max_length>500</max_length>
+    <name>u_meeting_room_booking</name>
+    <reference/>
+    <read_only>false</read_only>
+    <sys_id>ac3aff20105945cc98f029b1df5fbaa2</sys_id>
+    <sys_name>u_meeting_room_booking.u_equipment_needed</sys_name>
+    <sys_scope display_value="Global">global</sys_scope>
+    <table_reference>false</table_reference>
+    <use_dynamic_default>false</use_dynamic_default>
+  </sys_dictionary></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>67926aa7901e4730bae1dbb15447a4ac</sys_id>
+    <table>sys_dictionary</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_dictionary_fc506c80f8f54030a97d5b9c10368241</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_dictionary"><sys_dictionary action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <array>false</array>
+    <calculation/>
+    <choice>1</choice>
+    <column_label>Status</column_label>
+    <default_value>new</default_value>
+    <element>u_status</element>
+    <internal_type display_value="choice">choice</internal_type>
+    <mandatory>false</mandatory>
+    <max_length>40</max_length>
+    <name>u_meeting_room_booking</name>
+    <reference/>
+    <read_only>false</read_only>
+    <sys_id>fc506c80f8f54030a97d5b9c10368241</sys_id>
+    <sys_name>u_meeting_room_booking.u_status</sys_name>
+    <sys_scope display_value="Global">global</sys_scope>
+    <table_reference>false</table_reference>
+    <use_dynamic_default>false</use_dynamic_default>
+  </sys_dictionary></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>90e1e171029b4dafb736c254d781fcf1</sys_id>
+    <table>sys_dictionary</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_dictionary_f7b305b3e873485f98c2553b3665ffdf</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_dictionary"><sys_dictionary action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <array>false</array>
+    <calculation/>
+    <choice>0</choice>
+    <column_label>Rejection Reason</column_label>
+    <default_value></default_value>
+    <element>u_rejection_reason</element>
+    <internal_type display_value="string">string</internal_type>
+    <mandatory>false</mandatory>
+    <max_length>500</max_length>
+    <name>u_meeting_room_booking</name>
+    <reference/>
+    <read_only>false</read_only>
+    <sys_id>f7b305b3e873485f98c2553b3665ffdf</sys_id>
+    <sys_name>u_meeting_room_booking.u_rejection_reason</sys_name>
+    <sys_scope display_value="Global">global</sys_scope>
+    <table_reference>false</table_reference>
+    <use_dynamic_default>false</use_dynamic_default>
+  </sys_dictionary></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>1d67d195d1aa4fdba3fe88116662df63</sys_id>
+    <table>sys_dictionary</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_dictionary_5ad00cfc451f4057bb56f6906626fb3c</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_dictionary"><sys_dictionary action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <array>false</array>
+    <calculation/>
+    <choice>0</choice>
+    <column_label>Approved By</column_label>
+    <default_value></default_value>
+    <element>u_approved_by</element>
+    <internal_type display_value="reference">reference</internal_type>
+    <mandatory>false</mandatory>
+    <max_length/>
+    <name>u_meeting_room_booking</name>
+    <reference display_value="sys_user">sys_user</reference>
+    <read_only>true</read_only>
+    <sys_id>5ad00cfc451f4057bb56f6906626fb3c</sys_id>
+    <sys_name>u_meeting_room_booking.u_approved_by</sys_name>
+    <sys_scope display_value="Global">global</sys_scope>
+    <table_reference>false</table_reference>
+    <use_dynamic_default>false</use_dynamic_default>
+  </sys_dictionary></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>d4c1598207c448bba2d34576a7998929</sys_id>
+    <table>sys_dictionary</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_choice_1df4b8506b8b4bd8b319a7a6097e6899</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_choice"><sys_choice action="INSERT_OR_UPDATE">
+    <dependent_value/>
+    <element>u_status</element>
+    <hint/>
+    <inactive>false</inactive>
+    <label>New</label>
+    <language>en</language>
+    <name>u_meeting_room_booking</name>
+    <sequence>0</sequence>
+    <sys_id>1df4b8506b8b4bd8b319a7a6097e6899</sys_id>
+    <sys_scope display_value="Global">global</sys_scope>
+    <value>new</value>
+  </sys_choice></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>3c855d6020784811847c9ba6433d7055</sys_id>
+    <table>sys_choice</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_choice_c5720544875847a0b0e421c0466c04b7</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_choice"><sys_choice action="INSERT_OR_UPDATE">
+    <dependent_value/>
+    <element>u_status</element>
+    <hint/>
+    <inactive>false</inactive>
+    <label>Pending Approval</label>
+    <language>en</language>
+    <name>u_meeting_room_booking</name>
+    <sequence>100</sequence>
+    <sys_id>c5720544875847a0b0e421c0466c04b7</sys_id>
+    <sys_scope display_value="Global">global</sys_scope>
+    <value>pending_approval</value>
+  </sys_choice></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>cb6e196d5fb8442db469856bdd4e092f</sys_id>
+    <table>sys_choice</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_choice_3cebc77cab8643cc854afad7ec25a78c</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_choice"><sys_choice action="INSERT_OR_UPDATE">
+    <dependent_value/>
+    <element>u_status</element>
+    <hint/>
+    <inactive>false</inactive>
+    <label>Confirmed</label>
+    <language>en</language>
+    <name>u_meeting_room_booking</name>
+    <sequence>200</sequence>
+    <sys_id>3cebc77cab8643cc854afad7ec25a78c</sys_id>
+    <sys_scope display_value="Global">global</sys_scope>
+    <value>confirmed</value>
+  </sys_choice></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>6821488a3bb14ad68dd9dd7a0e51f3d4</sys_id>
+    <table>sys_choice</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_choice_91256196468c4a83b5d40d8aff5dcf86</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_choice"><sys_choice action="INSERT_OR_UPDATE">
+    <dependent_value/>
+    <element>u_status</element>
+    <hint/>
+    <inactive>false</inactive>
+    <label>Rejected</label>
+    <language>en</language>
+    <name>u_meeting_room_booking</name>
+    <sequence>300</sequence>
+    <sys_id>91256196468c4a83b5d40d8aff5dcf86</sys_id>
+    <sys_scope display_value="Global">global</sys_scope>
+    <value>rejected</value>
+  </sys_choice></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>ce0308ca752549a3b5082a139d00dd02</sys_id>
+    <table>sys_choice</table>
+    <type>Record</type>
+  </sys_update_xml>  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customization</category>
+    <name>sys_choice_6480d0b7cb5747c1b1d8025d35cc6abd</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_choice"><sys_choice action="INSERT_OR_UPDATE">
+    <dependent_value/>
+    <element>u_status</element>
+    <hint/>
+    <inactive>false</inactive>
+    <label>Cancelled</label>
+    <language>en</language>
+    <name>u_meeting_room_booking</name>
+    <sequence>400</sequence>
+    <sys_id>6480d0b7cb5747c1b1d8025d35cc6abd</sys_id>
+    <sys_scope display_value="Global">global</sys_scope>
+    <value>cancelled</value>
+  </sys_choice></record_update>]]></payload>
+    <remote_update_set display_value="Meeting Room Booking">a5769ab7c5114b7c815b00590b8e0f20</remote_update_set>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-05-04 02:23:55</sys_created_on>
+    <sys_id>9496a948d08f4e22bde7ffacb22f5891</sys_id>
+    <table>sys_choice</table>
+    <type>Record</type>
+  </sys_update_xml>
+</unload>
