@@ -83,6 +83,19 @@ function scoreFlow(flow, actions, recordCount) {
   if (score >= 8.5)      { tier = 'P0'; tierLabel = 'Quick Win'; }
   else if (score >= 6.5) { tier = 'P1'; tierLabel = 'High Value'; }
   else if (score >= 4.0) { tier = 'P2'; tierLabel = 'Medium Term'; }
+  // ── Integration complexity (0–10, higher = more complex) ────────────────
+  // 1-2: OOTB skill, 3-4: IH spoke, 5-6: scripted REST, 7-8: MID Server, 8-10: multi-agent
+  const integrationComplexity = Math.min(10,
+    (integrations >= 5 ? 4 : integrations >= 3 ? 3 : integrations >= 1 ? 2 : 1) +
+    (scripts >= 6 ? 4 : scripts >= 3 ? 2 : scripts >= 1 ? 1 : 0) +
+    (actions.length >= 15 ? 2 : actions.length >= 8 ? 1 : 0)
+  );
+  // ── Vendor lock-in risk (0–10, lower = less lock-in) ─────────────────────
+  // NOW Assist NowLLM 8-9, BYOLLM 6-7, frontier API 5-6, MCP 2-3, open-source 1-2
+  const vendorLockIn = Math.min(10, Math.max(1,
+    8 - Math.min(3, integrations) + (scripts >= 5 ? 1 : 0) // high scripts → migration complexity → higher lock-in
+  ));
+
   return {
     score, tier, tierLabel,
     dimensions: {
@@ -92,6 +105,8 @@ function scoreFlow(flow, actions, recordCount) {
       dataAvailability: parseFloat(dataAvail.toFixed(1)),
       effortScore: parseFloat(effort.toFixed(1)),
     },
+    integrationComplexity,
+    vendorLockIn,
     nodeBreakdown: {
       approvalGates: approvals, decisionNodes: decisions,
       scriptBlocks: scripts, integrationCalls: integrations,
@@ -111,7 +126,98 @@ function recommendPlatform(score, flowName) {
   return 'Power Automate + Copilot';
 }
 
+// ─── KARI: Kogniv AI Readiness Index (0–100, instance-level) ────────────────
+// Weights: DataQuality 30%, AutoMaturity 22%, PlatformModernity 18%,
+//          Governance 15%, OrgCapacity 15%  (Kogniv Framework §1)
+function computeKARI(answers) {
+  const q = answers || {};
+  // ── Data Quality (weight 0.30) ─────────────────────────────────────────
+  let dq = 0;
+  const cmdb   = parseFloat(q.Q2_3 || '70');
+  const volume = q.Q3_1 || '1k-10k';
+  const kb     = q.Q3_5 || 'partial';
+  const atf    = parseFloat(q.Q2_5 || '50');
+  dq += cmdb >= 90 ? 3 : cmdb >= 70 ? 2 : cmdb >= 50 ? 1 : 0;
+  dq += volume === '30k+' ? 3 : volume === '1k-30k' ? 2 : volume === '1k-10k' ? 1.5 : 1;
+  dq += kb === 'mature' ? 2 : kb === 'partial' ? 1 : 0;
+  dq += atf >= 70 ? 2 : atf >= 40 ? 1 : 0;
+  const dataQuality = Math.min(10, dq);
+  // ── Automation Maturity (weight 0.22) ─────────────────────────────────
+  let am = 0;
+  const flows        = parseInt(q.T01_count || '0');
+  const hasPi        = q.Q3_4_pi === 'yes';
+  const hasVa        = q.Q3_4_va === 'yes';
+  const hasNowAssist = (q.T03 || []).includes('NOW Assist');
+  const autoFootprint = q.Q3_3 || '25-50pct';
+  am += flows >= 200 ? 3 : flows >= 50 ? 2 : flows >= 10 ? 1 : 0;
+  am += hasPi ? 2 : 0;
+  am += hasVa ? 1.5 : 0;
+  am += hasNowAssist ? 2 : 0;
+  am += autoFootprint === '75pct+' ? 1.5 : autoFootprint === '50-75pct' ? 1 : 0;
+  const autoMaturity = Math.min(10, am);
+  // ── Platform Modernity (weight 0.18) ──────────────────────────────────
+  let pm = 0;
+  const release    = q.Q1_1 || 'n-2';
+  const customPct  = parseFloat(q.Q1_6 || '40');
+  const devops     = q.Q1_8 || 'update-sets';
+  pm += release === 'current' ? 4 : release === 'n-1' ? 3 : release === 'n-2' ? 2 : 1;
+  pm += customPct <= 10 ? 3 : customPct <= 25 ? 2 : customPct <= 40 ? 1 : 0;
+  pm += devops === 'source-control' ? 3 : devops === 'devops-plugin' ? 2 : 1;
+  const platformModernity = Math.min(10, pm);
+  // ── Governance (weight 0.15) ───────────────────────────────────────────
+  let gov = 0;
+  const coe         = q.Q4_2 || 'forming';
+  const aiGov       = q.Q4_5 || 'none';
+  const healthScore = parseFloat(q.Q2_2 || '60');
+  gov += coe === 'innovating' ? 4 : coe === 'scaling' ? 3 : coe === 'standardizing' ? 2 : 1;
+  gov += aiGov === 'full' ? 3 : aiGov === 'partial' ? 2 : aiGov === 'planned' ? 1 : 0;
+  gov += healthScore >= 80 ? 3 : healthScore >= 65 ? 2 : healthScore >= 50 ? 1 : 0;
+  const governance = Math.min(10, gov);
+  // ── Organisational Capacity (weight 0.15) ─────────────────────────────
+  let oc = 0;
+  const sponsor    = parseInt(q.Q4_1 || '2');
+  const adkar      = parseInt(q.T16_adkar || '2');
+  const certAdmins = parseInt(q.Q4_4_admins || '0');
+  oc += sponsor >= 4 ? 4 : sponsor >= 3 ? 2.5 : sponsor >= 2 ? 1 : 0;
+  oc += adkar >= 4 ? 3 : adkar >= 3 ? 2 : adkar >= 2 ? 1 : 0;
+  oc += certAdmins >= 3 ? 3 : certAdmins >= 1 ? 1.5 : 0;
+  const orgCapacity = Math.min(10, oc);
+  // ── Composite KARI (0–100) ─────────────────────────────────────────────
+  const kari = Math.round(Math.min(100, Math.max(0,
+    (0.30*dataQuality + 0.22*autoMaturity + 0.18*platformModernity +
+     0.15*governance + 0.15*orgCapacity) * 10)));
+  // ── Tier ───────────────────────────────────────────────────────────────
+  const TIERS = [
+    [86,'Transformational','Lead industry — co-innovate on Workflow Data Fabric',
+     'All investment classes viable. Focus on Agentic AI fabric + AI Control Tower.'],
+    [66,'Scaled','Full agentic-AI rollout with AI Control Tower',
+     'BYO-LLM and multi-agent architectures viable. Prioritise AI governance maturity.'],
+    [46,'Operational','Deploy NOW Assist at scale + experiment with AI Agents',
+     'Scale NOW Assist + Predictive Intelligence. AI Agents in controlled pilots only.'],
+    [26,'Emerging','Pilot NOW Assist on 1–2 highest-data-quality domains',
+     'GATE: No agentic AI yet. Pilot NOW Assist on 1–2 highest-data-quality domains only.'],
+    [0, 'Foundational','Remediate data and platform before any AI investment',
+     'HARD GATE: resolve CMDB quality, ATF coverage, and platform health first.'],
+  ];
+  const [, tier, tierLabel, gatingNote] = TIERS.find(([min]) => kari >= min);
+  return {
+    kari, tier, tierLabel, gatingNote,
+    subScores: { dataQuality: +dataQuality.toFixed(1), autoMaturity: +autoMaturity.toFixed(1),
+      platformModernity: +platformModernity.toFixed(1), governance: +governance.toFixed(1),
+      orgCapacity: +orgCapacity.toFixed(1) },
+    weights: { dataQuality:0.30, autoMaturity:0.22, platformModernity:0.18, governance:0.15, orgCapacity:0.15 },
+  };
+}
+
 // ─── Test connection ──────────────────────────────────────────────────────────
+
+// ── KARI endpoint ─────────────────────────────────────────────────────────────
+app.post('/api/kari', (req, res) => {
+  const { answers } = req.body || {};
+  const result = computeKARI(answers || {});
+  res.json(result);
+});
+
 app.post('/api/servicenow/test', async (req, res) => {
   const { instanceUrl, username, password } = req.body;
   if (!instanceUrl || !username || !password)
@@ -1563,3 +1669,108 @@ function computeCycleStats(records, table) {
     count: times.length,
   };
 }
+// ── KARI: Kogniv AI Readiness Index (0–100, instance-level) ──────────────
+// Weights: DataQuality 30%, AutoMaturity 22%, PlatformModernity 18%,
+//          Governance 15%, OrgCapacity 15%
+function computeKARI(answers) {
+  const q = answers || {};
+
+  // ── Data Quality (0–10, weight 0.30) ──────────────────────────────────
+  // Sources: CMDB completeness, ticket volume, KB maturity, duplicate rate
+  let dq = 0;
+  const cmdb = parseFloat(q.Q2_3 || '70');        // CMDB completeness %
+  const volume = q.Q3_1 || '1k-10k';               // 24-month ticket volume
+  const kb = q.Q3_5 || 'partial';                  // KB maturity
+  const atf = parseFloat(q.Q2_5 || '50');          // ATF coverage %
+  dq += cmdb >= 90 ? 3 : cmdb >= 70 ? 2 : cmdb >= 50 ? 1 : 0;
+  dq += volume === '30k+' ? 3 : volume === '1k-30k' ? 2 : volume === '1k-10k' ? 1.5 : 1;
+  dq += kb === 'mature' ? 2 : kb === 'partial' ? 1 : 0;
+  dq += atf >= 70 ? 2 : atf >= 40 ? 1 : 0;
+  const dataQuality = Math.min(10, dq);
+
+  // ── Automation Maturity (0–10, weight 0.22) ───────────────────────────
+  // Sources: flow count, VA topics, PI solutions, existing AI footprint
+  let am = 0;
+  const flows = parseInt(q.T01_count || '0');
+  const hasPi = q.Q3_4_pi === 'yes';
+  const hasVa = q.Q3_4_va === 'yes';
+  const hasNowAssist = (q.T03 || []).includes('NOW Assist');
+  const autoFootprint = q.Q3_3 || '25-50pct';
+  am += flows >= 200 ? 3 : flows >= 50 ? 2 : flows >= 10 ? 1 : 0;
+  am += hasPi ? 2 : 0;
+  am += hasVa ? 1.5 : 0;
+  am += hasNowAssist ? 2 : 0;
+  am += autoFootprint === '75pct+' ? 1.5 : autoFootprint === '50-75pct' ? 1 : 0;
+  const autoMaturity = Math.min(10, am);
+
+  // ── Platform Modernity (0–10, weight 0.18) ────────────────────────────
+  // Sources: release level, customisation debt, DevOps maturity
+  let pm = 0;
+  const release = q.Q1_1 || 'n-2';
+  const customPct = parseFloat(q.Q1_6 || '40');    // % customised OOTB
+  const devops = q.Q1_8 || 'update-sets';
+  pm += release === 'current' ? 4 : release === 'n-1' ? 3 : release === 'n-2' ? 2 : 1;
+  pm += customPct <= 10 ? 3 : customPct <= 25 ? 2 : customPct <= 40 ? 1 : 0;
+  pm += devops === 'source-control' ? 3 : devops === 'devops-plugin' ? 2 : devops === 'update-sets' ? 1 : 0;
+  const platformModernity = Math.min(10, pm);
+
+  // ── Governance (0–10, weight 0.15) ────────────────────────────────────
+  // Sources: CoE maturity, AI governance, compliance posture
+  let gov = 0;
+  const coe = q.Q4_2 || 'forming';
+  const aiGov = q.Q4_5 || 'none';
+  const healthScore = parseFloat(q.Q2_2 || '60');  // HealthScan %
+  gov += coe === 'innovating' ? 4 : coe === 'scaling' ? 3 : coe === 'standardizing' ? 2 : coe === 'forming' ? 1 : 0;
+  gov += aiGov === 'full' ? 3 : aiGov === 'partial' ? 2 : aiGov === 'planned' ? 1 : 0;
+  gov += healthScore >= 80 ? 3 : healthScore >= 65 ? 2 : healthScore >= 50 ? 1 : 0;
+  const governance = Math.min(10, gov);
+
+  // ── Organisational Capacity (0–10, weight 0.15) ───────────────────────
+  // Sources: exec sponsorship, skills, change management maturity
+  let oc = 0;
+  const sponsor = parseInt(q.Q4_1 || '2');         // 1-5 ADKAR scale
+  const adkar = parseInt(q.T16_adkar || '2');       // change mgmt maturity
+  const certAdmins = parseInt(q.Q4_4_admins || '0');
+  oc += sponsor >= 4 ? 4 : sponsor >= 3 ? 2.5 : sponsor >= 2 ? 1 : 0;
+  oc += adkar >= 4 ? 3 : adkar >= 3 ? 2 : adkar >= 2 ? 1 : 0;
+  oc += certAdmins >= 3 ? 3 : certAdmins >= 1 ? 1.5 : 0;
+  const orgCapacity = Math.min(10, oc);
+
+  // ── Composite KARI (0–100) ─────────────────────────────────────────────
+  const raw = (0.30 * dataQuality + 0.22 * autoMaturity + 0.18 * platformModernity +
+               0.15 * governance + 0.15 * orgCapacity) * 10;
+  const kari = Math.round(Math.min(100, Math.max(0, raw)));
+
+  // ── KARI tier ─────────────────────────────────────────────────────────
+  let tier, tierLabel, gatingNote;
+  if (kari >= 86) {
+    tier = 'Transformational'; tierLabel = 'Lead industry — co-innovate on Workflow Data Fabric';
+    gatingNote = 'All AI investment classes viable. Focus: agentic AI fabric + AI Control Tower.';
+  } else if (kari >= 66) {
+    tier = 'Scaled'; tierLabel = 'Full agentic-AI rollout with AI Control Tower viable';
+    gatingNote = 'BYO-LLM and multi-agent architectures viable. Prioritise AI governance maturity.';
+  } else if (kari >= 46) {
+    tier = 'Operational'; tierLabel = 'Deploy NOW Assist at scale + experiment with AI Agents';
+    gatingNote = 'Deploy NOW Assist + Predictive Intelligence at scale. AI Agents in controlled pilots.';
+  } else if (kari >= 26) {
+    tier = 'Emerging'; tierLabel = 'Pilot NOW Assist on 1–2 highest-data-quality domains';
+    gatingNote = 'Do NOT deploy agentic AI yet. Pilot NOW Assist on 1–2 highest-data-quality domains only.';
+  } else {
+    tier = 'Foundational'; tierLabel = 'Remediate data and platform before any AI investment';
+    gatingNote = 'HARD GATE: resolve CMDB quality, ATF coverage, and platform health before any AI investment.';
+  }
+
+  return {
+    kari, tier, tierLabel, gatingNote,
+    subScores: {
+      dataQuality:        +dataQuality.toFixed(1),
+      autoMaturity:       +autoMaturity.toFixed(1),
+      platformModernity:  +platformModernity.toFixed(1),
+      governance:         +governance.toFixed(1),
+      orgCapacity:        +orgCapacity.toFixed(1),
+    },
+    weights: { dataQuality:0.30, autoMaturity:0.22, platformModernity:0.18, governance:0.15, orgCapacity:0.15 },
+  };
+}
+
+

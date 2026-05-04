@@ -1226,6 +1226,54 @@ body{padding:0!important;background:var(--content-bg)!important;overflow:hidden}
     <div class="mcard"><div class="mcard-lbl">Est. Annual Savings</div><div class="mcard-val">$1.4M</div><div class="mcard-sub">top 20 automated</div></div>
   </div>
 
+  <!-- KARI Readiness Index -->
+  <div id="d-kari-card" style="background:var(--surf);border:.5px solid var(--bdr);border-radius:10px;padding:1rem 1.1rem;margin-bottom:1.25rem;display:none">
+    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+      <div style="position:relative;width:72px;height:72px;flex-shrink:0">
+        <svg width="72" height="72" style="transform:rotate(-90deg)">
+          <circle cx="36" cy="36" r="30" fill="none" stroke="var(--tint)" stroke-width="7"/>
+          <circle id="d-kari-arc" cx="36" cy="36" r="30" fill="none" stroke="var(--teal)" stroke-width="7" stroke-dasharray="0 188.5" stroke-linecap="round"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+          <span id="d-kari-num" style="font-size:20px;font-weight:600;color:var(--teal)">—</span>
+        </div>
+      </div>
+      <div style="flex:1;min-width:180px">
+        <div style="font-size:15px;font-weight:500;margin-bottom:2px">KARI — Kogniv AI Readiness Index</div>
+        <div id="d-kari-tier" style="font-size:12px;color:var(--muted);margin-bottom:4px">Complete the intake assessment to compute your score</div>
+        <div id="d-kari-gate" style="font-size:11px;color:#d97706;line-height:1.5"></div>
+      </div>
+      <div id="d-kari-dims" style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;min-width:260px"></div>
+    </div>
+  </div>
+
+  <!-- Module KPI table -->
+  <div style="background:var(--surf);border:.5px solid var(--bdr);border-radius:10px;padding:1rem 1.1rem;margin-bottom:1.25rem">
+    <div class="lbl">AI opportunity KPIs by module — targets from Kogniv framework</div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:var(--tint)">
+            <th style="padding:6px 10px;text-align:left;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">Module</th>
+            <th style="padding:6px 10px;text-align:left;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">Leading KPI</th>
+            <th style="padding:6px 10px;text-align:left;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">Lagging KPI</th>
+            <th style="padding:6px 10px;text-align:left;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">Year-1 target</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px;font-weight:500">ITSM</td><td style="padding:6px 10px;color:var(--muted)">NOW Assist usage %, deflection attempts</td><td style="padding:6px 10px;color:var(--muted)">MTTR, FCR, deflection rate</td><td style="padding:6px 10px;font-family:var(--mono);color:var(--teal)">MTTR −15–25% · deflection +15–30%</td></tr>
+          <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px;font-weight:500">HRSD</td><td style="padding:6px 10px;color:var(--muted)">VA engagement, KB views</td><td style="padding:6px 10px;color:var(--muted)">Onboard cycle, CSAT, deflection</td><td style="padding:6px 10px;font-family:var(--mono);color:var(--teal)">Onboard −25–40% · CSAT >85%</td></tr>
+          <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px;font-weight:500">CSM</td><td style="padding:6px 10px;color:var(--muted)">Channel mix shift, AI assist %</td><td style="padding:6px 10px;color:var(--muted)">AHT, FCR, CSAT, NPS</td><td style="padding:6px 10px;font-family:var(--mono);color:var(--teal)">AHT −20% · FCR +10pts · NPS +5–15</td></tr>
+          <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px;font-weight:500">SecOps</td><td style="padding:6px 10px;color:var(--muted)">AI-triaged alerts %, playbook automation</td><td style="padding:6px 10px;color:var(--muted)">MTTR (sec), dwell time, vuln SLA</td><td style="padding:6px 10px;font-family:var(--mono);color:var(--teal)">MTTR −40% · dwell −50%</td></tr>
+          <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px;font-weight:500">Procurement</td><td style="padding:6px 10px;color:var(--muted)">AI-assisted RFx, contract review %</td><td style="padding:6px 10px;color:var(--muted)">Cycle time, savings $, vendor risk</td><td style="padding:6px 10px;font-family:var(--mono);color:var(--teal)">Cycle −30% · savings 5–10%</td></tr>
+          <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px;font-weight:500">ITAM</td><td style="padding:6px 10px;color:var(--muted)">Discovery coverage, audit workspace</td><td style="padding:6px 10px;color:var(--muted)">Ghost asset rate, CMDB accuracy</td><td style="padding:6px 10px;font-family:var(--mono);color:var(--teal)">Ghost assets &lt;5% · CMDB >95%</td></tr>
+          <tr><td style="padding:6px 10px;font-weight:500">SAM</td><td style="padding:6px 10px;color:var(--muted)">Reclamation candidates actioned</td><td style="padding:6px 10px;color:var(--muted)">Reclamation $, audit readiness</td><td style="padding:6px 10px;font-family:var(--mono);color:var(--teal)">Reclaim 15–25% of licence spend</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:.75rem;font-size:11px;color:var(--muted);font-family:var(--mono)">AI-specific cross-cutting: acceptance rate ≥60% by M3 · hallucination rate &lt;2% · latency p95 &lt;3s inline / &lt;30s agentic · PII leakage = 0</div>
+  </div>
+
   <!-- NOW Assist highlight -->
   <div class="now-banner">
     <div class="now-banner-title">
@@ -1376,6 +1424,27 @@ body{padding:0!important;background:var(--content-bg)!important;overflow:hidden}
     </div>
   </div>
 
+    <div class="q-item">
+      <label class="q-lbl">Q2.1 — What does your ServiceNow HealthScan (Instance Scan) overall score show?</label>
+      <div class="q-opts" id="q-Q2_2">
+        <div class="q-opt" onclick="pick('Q2_2',this,'85')"><input type="radio" name="Q2_2"><span>85%+ (healthy — ready for AI workloads)</span></div>
+        <div class="q-opt" onclick="pick('Q2_2',this,'70')"><input type="radio" name="Q2_2"><span>70–84% (good — minor issues only)</span></div>
+        <div class="q-opt" onclick="pick('Q2_2',this,'55')"><input type="radio" name="Q2_2"><span>55–69% (moderate — performance risks exist)</span></div>
+        <div class="q-opt" onclick="pick('Q2_2',this,'40')"><input type="radio" name="Q2_2"><span>Below 55% (poor — remediate before AI)</span></div>
+        <div class="q-opt" onclick="pick('Q2_2',this,'unknown')"><input type="radio" name="Q2_2"><span>Haven't run HealthScan</span></div>
+      </div>
+    </div>
+
+    <div class="q-item">
+      <label class="q-lbl">Q2.2 — What is your ServiceNow DevOps and change velocity practice?</label>
+      <div class="q-opts" id="q-Q1_8">
+        <div class="q-opt" onclick="pick('Q1_8',this,'source-control')"><input type="radio" name="Q1_8"><span>Source Control / DevOps plugin (Git-based pipelines)</span></div>
+        <div class="q-opt" onclick="pick('Q1_8',this,'devops-plugin')"><input type="radio" name="Q1_8"><span>DevOps plugin without source control</span></div>
+        <div class="q-opt" onclick="pick('Q1_8',this,'update-sets')"><input type="radio" name="Q1_8"><span>Update Sets only</span></div>
+        <div class="q-opt" onclick="pick('Q1_8',this,'manual')"><input type="radio" name="Q1_8"><span>Manual / ad-hoc deployments</span></div>
+      </div>
+    </div>
+
   <!-- Section 2: Automation Potential -->
   <div class="q-sec" id="qs-2">
     <div class="q-sec-title">Automation Potential</div>
@@ -1414,9 +1483,29 @@ body{padding:0!important;background:var(--content-bg)!important;overflow:hidden}
         <div class="q-opt" onclick="mpick('T10',this,'Predictive')"><input type="checkbox"><span>Predictive analytics (SLA breach, churn risk)</span></div>
       </div>
     </div>
+
+    <div class="q-item">
+      <label class="q-lbl">Q3.1 — What is your ATF (Automated Test Framework) test coverage?</label>
+      <div class="q-opts" id="q-Q2_5">
+        <div class="q-opt" onclick="pick('Q2_5',this,'80')"><input type="radio" name="Q2_5"><span>80%+ (strong safety net for AI plugin updates)</span></div>
+        <div class="q-opt" onclick="pick('Q2_5',this,'50')"><input type="radio" name="Q2_5"><span>40–79% (partial — acceptable for NOW Assist OOTB)</span></div>
+        <div class="q-opt" onclick="pick('Q2_5',this,'20')"><input type="radio" name="Q2_5"><span>Below 40% (risk — AI updates may cause regressions)</span></div>
+        <div class="q-opt" onclick="pick('Q2_5',this,'0')"><input type="radio" name="Q2_5"><span>No ATF coverage</span></div>
+      </div>
+    </div>
+
+    <div class="q-item">
+      <label class="q-lbl">Q3.2 — What is your ServiceNow Knowledge Base maturity?</label>
+      <div class="q-opts" id="q-Q3_5">
+        <div class="q-opt" onclick="pick('Q3_5',this,'mature')"><input type="radio" name="Q3_5"><span>Mature — 200+ published articles, regularly reviewed, KCS adopted</span></div>
+        <div class="q-opt" onclick="pick('Q3_5',this,'partial')"><input type="radio" name="Q3_5"><span>Partial — KB exists but incomplete, mixed quality</span></div>
+        <div class="q-opt" onclick="pick('Q3_5',this,'basic')"><input type="radio" name="Q3_5"><span>Basic — few articles, rarely updated</span></div>
+        <div class="q-opt" onclick="pick('Q3_5',this,'none')"><input type="radio" name="Q3_5"><span>No meaningful KB</span></div>
+      </div>
+    </div>
   </div>
 
-  <!-- Section 3: Business Impact & Data -->
+  <!-- Section 3: Business Impact  <!-- Section 3: Business Impact & Data -->
   <div class="q-sec" id="qs-3">
     <div class="q-sec-title">Business Impact &amp; Data</div>
     <div class="q-sec-sub">T11 — T13 · Scoring weight: 40%</div>
@@ -1444,9 +1533,39 @@ body{padding:0!important;background:var(--content-bg)!important;overflow:hidden}
       <label class="q-lbl">T13 — Describe your primary pain points with current workflows (optional but improves recommendations)</label>
       <textarea class="q-textarea" id="q-T13" placeholder="e.g. Approval bottlenecks causing SLA breaches, manual data entry between systems, high ticket re-open rates, agent context switching between ServiceNow and Salesforce..."></textarea>
     </div>
+
+    <div class="q-item">
+      <label class="q-lbl">Q4.1 — What is the executive sponsorship level for AI transformation? (1 = none, 5 = strong)</label>
+      <div class="l-row" id="q-Q4_1">
+        <div class="l-opt" onclick="likert('Q4_1',this,'1')"><span>1</span><small>None</small></div>
+        <div class="l-opt" onclick="likert('Q4_1',this,'2')"><span>2</span><small>Emerging</small></div>
+        <div class="l-opt" onclick="likert('Q4_1',this,'3')"><span>3</span><small>Moderate</small></div>
+        <div class="l-opt" onclick="likert('Q4_1',this,'4')"><span>4</span><small>Strong</small></div>
+        <div class="l-opt" onclick="likert('Q4_1',this,'5')"><span>5</span><small>C-level champion</small></div>
+      </div>
+    </div>
+
+    <div class="q-item">
+      <label class="q-lbl">Q4.2 — What is your ServiceNow CoE (Centre of Excellence) maturity?</label>
+      <div class="q-opts" id="q-Q4_2">
+        <div class="q-opt" onclick="pick('Q4_2',this,'innovating')"><input type="radio" name="Q4_2"><span>Innovating — full CoEI, AI governance in place, co-innovating with ServiceNow</span></div>
+        <div class="q-opt" onclick="pick('Q4_2',this,'scaling')"><input type="radio" name="Q4_2"><span>Scaling — established CoE, consistent delivery, AI pilots underway</span></div>
+        <div class="q-opt" onclick="pick('Q4_2',this,'standardizing')"><input type="radio" name="Q4_2"><span>Standardizing — CoE forming, processes being documented</span></div>
+        <div class="q-opt" onclick="pick('Q4_2',this,'forming')"><input type="radio" name="Q4_2"><span>Forming — no formal CoE, reactive operations</span></div>
+      </div>
+    </div>
+
+    <div class="q-item">
+      <label class="q-lbl">Q4.3 — 24-month resolved ticket volume (required for Predictive Intelligence training — min 30K per solution)</label>
+      <div class="q-opts" id="q-Q3_1">
+        <div class="q-opt" onclick="pick('Q3_1',this,'30k+')"><input type="radio" name="Q3_1"><span>30,000+ resolved tickets (PI-ready for all modules)</span></div>
+        <div class="q-opt" onclick="pick('Q3_1',this,'1k-30k')"><input type="radio" name="Q3_1"><span>1,000–29,999 (PI viable for high-volume categories only)</span></div>
+        <div class="q-opt" onclick="pick('Q3_1',this,'1k-10k')"><input type="radio" name="Q3_1"><span>Below 1,000 (insufficient for PI — GenAI only)</span></div>
+      </div>
+    </div>
   </div>
 
-  <!-- Section 4: Compliance & Strategy -->
+  <!-- Section 4: Compliance  <!-- Section 4: Compliance & Strategy -->
   <div class="q-sec" id="qs-4">
     <div class="q-sec-title">Compliance, Risk &amp; Strategy</div>
     <div class="q-sec-sub">T14 — T16 · Final step — feeds platform recommendation</div>
@@ -1480,6 +1599,28 @@ body{padding:0!important;background:var(--content-bg)!important;overflow:hidden}
         <div class="q-opt" onclick="pick('T16',this,'12mo')"><input type="radio" name="T16"><span>Full transformation — 12-month plan</span></div>
       </div>
     </div>
+    <div class="q-item">
+      <label class="q-lbl">Q4.4 — What is your AI governance framework maturity?</label>
+      <div class="q-opts" id="q-Q4_5">
+        <div class="q-opt" onclick="pick('Q4_5',this,'full')"><input type="radio" name="Q4_5"><span>Full — AI ethics board, model risk framework, AI Control Tower active</span></div>
+        <div class="q-opt" onclick="pick('Q4_5',this,'partial')"><input type="radio" name="Q4_5"><span>Partial — some AI policies in place, no formal board</span></div>
+        <div class="q-opt" onclick="pick('Q4_5',this,'planned')"><input type="radio" name="Q4_5"><span>Planned — governance being designed</span></div>
+        <div class="q-opt" onclick="pick('Q4_5',this,'none')"><input type="radio" name="Q4_5"><span>None — no AI governance in place</span></div>
+      </div>
+    </div>
+
+    <div class="q-item">
+      <label class="q-lbl">Q4.5 — Change management maturity for AI rollouts (Prosci ADKAR — 1 = no capability, 5 = expert)</label>
+      <div class="l-row" id="q-T16_adkar">
+        <div class="l-opt" onclick="likert('T16_adkar',this,'1')"><span>1</span><small>None</small></div>
+        <div class="l-opt" onclick="likert('T16_adkar',this,'2')"><span>2</span><small>Basic</small></div>
+        <div class="l-opt" onclick="likert('T16_adkar',this,'3')"><span>3</span><small>Defined</small></div>
+        <div class="l-opt" onclick="likert('T16_adkar',this,'4')"><span>4</span><small>Managed</small></div>
+        <div class="l-opt" onclick="likert('T16_adkar',this,'5')"><span>5</span><small>Expert</small></div>
+      </div>
+    </div>
+
+
 
     <div class="spin-wrap" id="q-spin"><div class="spin"></div><div class="spin-lbl" id="q-spin-lbl">Vectorizing context...</div></div>
     <div class="ai-box" id="q-result"></div>
@@ -1609,10 +1750,93 @@ body{padding:0!important;background:var(--content-bg)!important;overflow:hidden}
     <div id="pd-bars"></div>
     <hr class="div" style="margin:.875rem 0">
     <div class="lbl">3-Year TCO Breakdown</div>
+    <div style="background:var(--tint);border:.5px solid var(--bdr);border-radius:7px;padding:.75rem 1rem;margin-bottom:.875rem;font-size:11px;font-family:var(--mono);color:var(--muted);line-height:1.8">
+      TCO<sub>3yr</sub> = Σ<sub>y∈{1,2,3}</sub> [License<sub>y</sub> + Token_cost<sub>y</sub>(1−cache_hit×0.9) + Implementation<sub>y</sub> + Maintenance<sub>y</sub>(0.18×Impl) + Training<sub>y</sub> + Infra<sub>y</sub> + Risk_reserve<sub>y</sub>(0.12×Y1)]
+    </div>
     <div id="pd-tco"></div>
   </div>
 
-  <!-- Decision Matrix -->
+  <!-- Risk & Accuracy Gates -->
+  <div class="lbl" style="margin-top:1.25rem">Go/No-go gates — mandatory before AI deployment</div>
+  <div style="background:var(--surf);border:.5px solid var(--bdr);border-radius:10px;padding:1rem 1.1rem;margin-bottom:1.25rem">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:.875rem;line-height:1.65">Kogniv enforces 8 mandatory accuracy and governance gates. Any gate below threshold pauses deployment and triggers a remediation sprint before go-live.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.625rem">
+      <div style="border:.5px solid var(--bdr);border-radius:7px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:3px">Classification accuracy</div>
+        <div style="font-size:11px;font-family:var(--mono);color:var(--teal)">≥ 85%</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">Measured over 2-week shadow mode before go-live</div>
+      </div>
+      <div style="border:.5px solid var(--bdr);border-radius:7px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:3px">Summarisation helpfulness</div>
+        <div style="font-size:11px;font-family:var(--mono);color:var(--teal)">≥ 80%</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">Agent rating on 5-point scale during shadow mode</div>
+      </div>
+      <div style="border:.5px solid var(--bdr);border-radius:7px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:3px">Hallucination rate</div>
+        <div style="font-size:11px;font-family:var(--mono);color:var(--teal)">&lt; 5% (shadow) · &lt; 2% (production)</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">Sampled audit of AI outputs weekly</div>
+      </div>
+      <div style="border:.5px solid var(--bdr);border-radius:7px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:3px">Self-service deflection</div>
+        <div style="font-size:11px;font-family:var(--mono);color:var(--teal)">≥ 10–14% in Year 1</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">Measured as % of contacts resolved without human</div>
+      </div>
+      <div style="border:.5px solid var(--bdr);border-radius:7px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:3px">Token cost ceiling</div>
+        <div style="font-size:11px;font-family:var(--mono);color:var(--teal)">≤ 5% of FTE-hours saved value</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">If exceeded: recommend smaller model (e.g. Haiku)</div>
+      </div>
+      <div style="border:.5px solid var(--bdr);border-radius:7px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:3px">MAU adoption rate</div>
+        <div style="font-size:11px;font-family:var(--mono);color:var(--teal)">≥ 30% of eligible users by M3</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">Below threshold triggers positioning/training review</div>
+      </div>
+      <div style="border:.5px solid #fca5a5;border-radius:7px;padding:.75rem;background:#fff1f2">
+        <div style="font-size:11px;font-weight:500;margin-bottom:3px;color:#991b1b">Human-in-loop gate (HRSD writes)</div>
+        <div style="font-size:11px;font-family:var(--mono);color:#991b1b">Mandatory — no exceptions</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">All HRSD write operations require human review regardless of confidence</div>
+      </div>
+      <div style="border:.5px solid #fca5a5;border-radius:7px;padding:.75rem;background:#fff1f2">
+        <div style="font-size:11px;font-weight:500;margin-bottom:3px;color:#991b1b">Human-in-loop gate (SecOps writes)</div>
+        <div style="font-size:11px;font-family:var(--mono);color:#991b1b">Mandatory — no exceptions</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">All SecOps write operations (block, quarantine, revoke) require human review</div>
+      </div>
+    </div>
+    <div style="margin-top:.75rem;padding:.75rem;background:var(--tint);border-radius:6px;font-size:11px;color:var(--muted)">
+      <strong style="color:var(--ink)">Governance:</strong> OAuth 2.1 + PKCE required on all MCP servers · Zero-data-retention endpoints for regulated data · DPIA required before EU PII processing
+    </div>
+  </div>
+
+  
+  <!-- Token Cost Model -->
+  <div class="lbl" style="margin-top:1.25rem">Token cost model — 1M annual calls · incident summarisation workload</div>
+  <div style="background:var(--surf);border:.5px solid var(--bdr);border-radius:10px;padding:1rem 1.1rem;margin-bottom:1.25rem;overflow-x:auto">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:.875rem">Canonical workload: ~2,000 input tokens + ~300 output tokens per summarisation. NOW Assist licence uplift assumes 5,000 fulfillers at ~60% Pro→Pro Plus premium over 3 years.</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead>
+        <tr style="background:var(--tint)">
+          <th style="padding:6px 10px;text-align:left;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">Model</th>
+          <th style="padding:6px 10px;text-align:right;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">Input $/1M tok</th>
+          <th style="padding:6px 10px;text-align:right;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">Output $/1M tok</th>
+          <th style="padding:6px 10px;text-align:right;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">1M calls / year</th>
+          <th style="padding:6px 10px;text-align:left;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">Best for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px;font-weight:500">Gemini 2.5 Flash-Lite</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);color:var(--teal)">$0.10</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);color:var(--teal)">$0.40</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);font-weight:500;color:var(--teal)">$320</td><td style="padding:6px 10px;color:var(--muted)">High-volume routing, classification at scale</td></tr>
+        <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px;font-weight:500">Gemini 2.5 Flash</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$0.30</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$2.50</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$1,350</td><td style="padding:6px 10px;color:var(--muted)">Balanced price/performance, multimodal</td></tr>
+        <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px;font-weight:500">GPT-5.4 mini</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$0.75</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$4.50</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$2,850</td><td style="padding:6px 10px;color:var(--muted)">M365 ecosystem, Copilot integration</td></tr>
+        <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px;font-weight:500">Claude Haiku 4.5</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$1.00</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$5.00</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$3,500</td><td style="padding:6px 10px;color:var(--muted)">Fast structured tasks, NOW Assist BYO-LLM</td></tr>
+        <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px;font-weight:500">Claude Sonnet 4.5</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$3.00</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$15.00</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$10,500</td><td style="padding:6px 10px;color:var(--muted)">Complex reasoning, agentic workflows</td></tr>
+        <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px;font-weight:500">Claude Opus 4.7</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$5.00</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$25.00</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$17,500</td><td style="padding:6px 10px;color:var(--muted)">Extended thinking, 1M context, cross-system RCA</td></tr>
+        <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px;font-weight:500">GPT-5.5</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$5.00</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$30.00</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$19,000</td><td style="padding:6px 10px;color:var(--muted)">Broadest tool ecosystem, AgentKit</td></tr>
+        <tr style="background:var(--lnow)"><td style="padding:6px 10px;font-weight:500;color:var(--now)">NOW Assist (5K fulfillers)</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);color:var(--now)">licence uplift</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);color:var(--now)">~60% premium</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);font-weight:500;color:var(--now)">~$9M/3yr</td><td style="padding:6px 10px;color:var(--muted)">All in-platform skills — value depends on utilisation</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:.75rem;font-size:11px;color:var(--muted)">Per individual skill, third-party is dramatically cheaper. Per portfolio of skills, NOW Assist value depends on how many skills are actually consumed. Kogniv recommends tracking Assists used vs tokens saved monthly.</div>
+  </div>
+
+<!-- Decision Matrix -->
   <div class="lbl">When to choose which platform</div>
   <div class="matrix-wrap">
     <table class="matrix">
@@ -2284,6 +2508,33 @@ body{padding:0!important;background:var(--content-bg)!important;overflow:hidden}
           <div class="card" style="padding:.75rem;margin-bottom:1rem"><div id="fs-kpis"></div></div>
           <div class="lbl">What happens to manual effort</div>
           <div id="fs-effort-narrative"></div>
+  <!-- Canonical ROI worked examples from Kogniv framework -->
+  <div class="lbl" style="margin-top:1.25rem">7 canonical ROI calculations — Kogniv framework benchmarks</div>
+  <div style="background:var(--surf);border:.5px solid var(--bdr);border-radius:10px;padding:1rem 1.1rem;margin-bottom:1.25rem;overflow-x:auto" id="fs-canonical-roi">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:.75rem">Assumptions: IT loaded rate $80/hr · agent loaded rate $50/hr · ticket handle cost $22 mid-market / $35 enterprise. Validated against ServiceNow Now-on-Now and Forrester TEI.</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead>
+        <tr style="background:var(--tint)">
+          <th style="padding:6px 10px;text-align:left;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">Use case</th>
+          <th style="padding:6px 10px;text-align:right;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">Annual benefit</th>
+          <th style="padding:6px 10px;text-align:right;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">Annual cost</th>
+          <th style="padding:6px 10px;text-align:right;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">ROI</th>
+          <th style="padding:6px 10px;text-align:right;font-family:var(--mono);font-size:10px;border-bottom:.5px solid var(--bdr)">Payback</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px">Incident auto-categorisation (240K incidents)</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);color:var(--teal)">$284K</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$94.8K</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);font-weight:500">200%</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">4 mo</td></tr>
+        <tr style="border-bottom:.5px solid var(--bdr);background:var(--lteal)"><td style="padding:6px 10px;font-weight:500">Case summarisation (500K cases, 200 agents)</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);color:var(--teal);font-weight:500">$2.02M</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$147K</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);font-weight:500;color:var(--teal)">1,272%</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);font-weight:500;color:var(--teal)">1 mo</td></tr>
+        <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px">Phishing triage (60K emails)</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);color:var(--teal)">$1.12M</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$296K</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);font-weight:500">279%</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">3 mo</td></tr>
+        <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px">Vulnerability prioritisation (1.2M open vulns)</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);color:var(--teal)">$1.22M</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$213K</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);font-weight:500">470%</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">2 mo</td></tr>
+        <tr style="border-bottom:.5px solid var(--bdr);background:var(--lteal)"><td style="padding:6px 10px;font-weight:500">Licence reclamation ($50M software baseline)</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);color:var(--teal);font-weight:500">$4M</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$379K</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);font-weight:500;color:var(--teal)">950%</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);font-weight:500;color:var(--teal)">1 mo</td></tr>
+        <tr style="border-bottom:.5px solid var(--bdr)"><td style="padding:6px 10px">Onboarding automation (5K hires/year)</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);color:var(--teal)">$3M</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$487K</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);font-weight:500">519%</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">2 mo</td></tr>
+        <tr><td style="padding:6px 10px">Vendor risk scoring (2,000 vendors)</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);color:var(--teal)">$1.9M</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">$421K</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);font-weight:500">351%</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono)">4 mo</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+
           <div style="margin-top:.875rem;display:flex;gap:8px;flex-wrap:wrap">
             <button onclick="fsStage(2)" style="font-size:12px">← Back</button>
             <button onclick="fsAI('roi')" style="font-size:12px;font-family:var(--mono)">Generate detailed business case ↗</button>
@@ -3110,6 +3361,16 @@ async function runQAnalysis(){
   const spin=document.getElementById('q-spin');
   const result=document.getElementById('q-result');
   spin.classList.add('show');result.style.display='none';
+
+  // ── Compute KARI score from answers ──────────────────────────────────
+  const kariAnswers = Object.assign({}, qA, {
+    'T03': qMA['T03']||[], 'T02': qMA['T02']||[],
+    'Q1_1': qA['Q1_1'], 'Q2_3': qA['Q2_3'], 'Q2_2': qA['Q2_2'],
+    'Q1_8': qA['Q1_8'], 'Q2_5': qA['Q2_5'], 'Q3_5': qA['Q3_5'],
+    'Q4_1': qA['Q4_1'], 'Q4_2': qA['Q4_2'], 'Q3_1': qA['Q3_1'],
+    'Q4_5': qA['Q4_5'], 'T16_adkar': qA['T16_adkar'],
+    'T01_count': qA['T01']==='500+'?'500':qA['T01']==='200–500'?'300':qA['T01']==='50–200'?'100':'20',
+  });
   document.getElementById('q-next').disabled=true;
   const statuses=['Vectorizing context embeddings...','Analysing tech stack compatibility...','Running NOW Assist fit scoring...','Matching to optimal platform paths...','Synthesizing AI recommendations...'];
   let si=0;const lbl=document.getElementById('q-spin-lbl');
@@ -3155,7 +3416,26 @@ Structure your response with markdown bold headers:
 
 Be highly specific to their tech stack. If they have M365, name Power Automate. If they have NOW Assist already licensed, highlight no-cost quick wins.`}]});
     clearInterval(tick);spin.classList.remove('show');
-    result.style.display='block';result.classList.add('show','ai-box');result.innerHTML=md(text);
+    // ── KARI score card ──────────────────────────────────────────────
+    const kariResult = await fetch('/api/kari',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({answers:kariAnswers})}).then(r=>r.json()).catch(()=>null);
+    const kari = kariResult?.kari;
+    const kariHTML = kari ? `<div style="background:var(--surf);border:.5px solid var(--bdr);border-radius:8px;padding:1rem;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;gap:.875rem;margin-bottom:.75rem">
+        <div style="width:64px;height:64px;border-radius:50%;border:3px solid ${kari>=66?'var(--teal)':kari>=46?'var(--lblue)':'#d97706'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <span style="font-size:20px;font-weight:600;color:${kari>=66?'var(--teal)':kari>=46?'var(--lblue)':'#d97706'}">${kari}</span>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:500">KARI Score: ${kariResult.tier}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${kariResult.tierLabel}</div>
+          <div style="font-size:11px;color:#d97706;margin-top:3px">${kariResult.gatingNote}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+        ${Object.entries(kariResult.subScores).map(([k,v])=>`<div style="text-align:center;background:var(--tint);border-radius:5px;padding:5px 3px"><div style="font-size:14px;font-weight:500">${v}</div><div style="font-size:9px;font-family:var(--mono);color:var(--muted);margin-top:2px">${{dataQuality:'Data',autoMaturity:'Automation',platformModernity:'Platform',governance:'Governance',orgCapacity:'Org'}[k]}</div></div>`).join('')}
+      </div>
+    </div>` : '';
+    result.style.display='block';result.classList.add('show','ai-box');
+    result.innerHTML = kariHTML + md(text);
   }catch(e){
     clearInterval(tick);spin.classList.remove('show');
     result.style.display='block';result.classList.add('show','ai-box');
@@ -6472,4 +6752,24 @@ function initObserve() {
 
 </script>
 </body>
-</html>
+</html>    <div class="q-item">
+      <label class="q-lbl">Q1.1 — What is your current ServiceNow release level?</label>
+      <div class="q-opts" id="q-Q1_1">
+        <div class="q-opt" onclick="pick('Q1_1',this,'current')"><input type="radio" name="Q1_1"><span>Current GA (Zurich / latest)</span></div>
+        <div class="q-opt" onclick="pick('Q1_1',this,'n-1')"><input type="radio" name="Q1_1"><span>N-1 (one release behind)</span></div>
+        <div class="q-opt" onclick="pick('Q1_1',this,'n-2')"><input type="radio" name="Q1_1"><span>N-2 or older (Yokohama and below)</span></div>
+        <div class="q-opt" onclick="pick('Q1_1',this,'unknown')"><input type="radio" name="Q1_1"><span>Not sure / legacy</span></div>
+      </div>
+    </div>
+
+    <div class="q-item">
+      <label class="q-lbl">Q1.2 — What is your CMDB completeness (% of CIs with all required fields populated)?</label>
+      <div class="q-opts" id="q-Q2_3">
+        <div class="q-opt" onclick="pick('Q2_3',this,'90')"><input type="radio" name="Q2_3"><span>90%+ (excellent — AI-ready)</span></div>
+        <div class="q-opt" onclick="pick('Q2_3',this,'70')"><input type="radio" name="Q2_3"><span>70–89% (good — minor remediation needed)</span></div>
+        <div class="q-opt" onclick="pick('Q2_3',this,'50')"><input type="radio" name="Q2_3"><span>50–69% (moderate — impacts AI routing accuracy)</span></div>
+        <div class="q-opt" onclick="pick('Q2_3',this,'30')"><input type="radio" name="Q2_3"><span>Below 50% (poor — blocks most AI use cases)</span></div>
+      </div>
+    </div>
+
+
